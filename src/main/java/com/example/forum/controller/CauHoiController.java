@@ -2,6 +2,7 @@ package com.example.forum.controller;
 
 import com.example.forum.model.*;
 import com.example.forum.service.*;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -17,8 +18,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Controller
@@ -30,12 +33,13 @@ public class CauHoiController {
     private final CauTraLoiService cauTraLoiService;
     private final NguoiDungService nguoiDungService;
     private final ChuDeService chuDeService;
+    private final ThongBaoService thongBaoService;
     
     @Value("${upload.path:uploads}")
     private String uploadPath;
     
     @GetMapping("/{id}")
-    public String xemChiTiet(@PathVariable String id, Model model) {
+    public String xemChiTiet(@PathVariable String id, Model model, HttpSession session) {
         Optional<CauHoi> cauHoiOpt = cauHoiService.timTheoId(id);
         
         if (cauHoiOpt.isEmpty()) {
@@ -43,7 +47,22 @@ public class CauHoiController {
         }
         
         CauHoi cauHoi = cauHoiOpt.get();
-        cauHoiService.tangLuotXem(id);
+        
+        // Kiểm tra xem user đã xem câu hỏi này trong session chưa
+        @SuppressWarnings("unchecked")
+        Set<String> viewedQuestions = (Set<String>) session.getAttribute("viewedQuestions");
+        if (viewedQuestions == null) {
+            viewedQuestions = new HashSet<>();
+        }
+        
+        // Chỉ tăng lượt xem nếu chưa xem trong session này
+        if (!viewedQuestions.contains(id)) {
+            cauHoiService.tangLuotXem(id);
+            viewedQuestions.add(id);
+            session.setAttribute("viewedQuestions", viewedQuestions);
+            // Refresh lại câu hỏi để lấy lượt xem mới
+            cauHoi = cauHoiService.timTheoId(id).orElse(cauHoi);
+        }
         
         model.addAttribute("cauHoi", cauHoi);
         model.addAttribute("cauTraLois", cauTraLoiService.timTheoCauHoi(id));
@@ -278,6 +297,24 @@ public class CauHoiController {
         // Cập nhật số bình luận
         long soBinhLuan = cauTraLoiService.demTheoCauHoi(id);
         cauHoiService.capNhatSoBinhLuan(id, (int) soBinhLuan);
+        
+        // Tạo thông báo cho người đăng câu hỏi (nếu không phải chính mình trả lời)
+        if (!nguoiDung.getManguoidung().equals(cauHoi.getManguoidung())) {
+            String tieude = "Có người trả lời câu hỏi của bạn";
+            String noiDungTB = nguoiDung.getHoten() + " đã trả lời câu hỏi: \"" + 
+                              (cauHoi.getTieude().length() > 50 ? cauHoi.getTieude().substring(0, 50) + "..." : cauHoi.getTieude()) + "\"";
+            String link = "/cau-hoi/" + id;
+            thongBaoService.taoThongBao(
+                cauHoi.getManguoidung(),
+                tieude,
+                noiDungTB,
+                link,
+                "REPLY",
+                nguoiDung.getManguoidung(),
+                nguoiDung.getHoten(),
+                nguoiDung.getAnhdaidien()
+            );
+        }
         
         redirectAttributes.addFlashAttribute("success", "Đã gửi câu trả lời!");
         

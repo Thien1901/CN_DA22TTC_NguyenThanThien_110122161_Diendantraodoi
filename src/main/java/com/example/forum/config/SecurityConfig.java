@@ -25,8 +25,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/thong-bao/api/**")
+            )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/cau-hoi/**", "/chuyen-nganh/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
+                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/cau-hoi/**", "/chuyen-nganh/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/api/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
