@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Câu hỏi chờ duyệt - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <style>
+        :root { --primary-color: #4361ee; --secondary-color: #3f37c9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+        .sidebar { background: white; min-height: calc(100vh - 56px); box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar-link { display: block; padding: 12px 20px; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #e7f1ff; color: var(--primary-color); border-left-color: var(--primary-color); }
+        .content-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .question-card { border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</a>
+            <div class="navbar-nav ms-auto">
+                <form th:action="@{/dang-xuat}" method="post"><button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button></form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 p-0 sidebar">
+                <div class="py-3">
+                    <a th:href="@{/admin}" class="sidebar-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link"><i class="bi bi-people me-2"></i>Người dùng</a>
+                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-dots me-2"></i>Câu hỏi</a>
+                    <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link active"><i class="bi bi-clock-history me-2"></i>Chờ duyệt</a>
+                    <hr>
+                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house me-2"></i>Về trang chủ</a>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4">
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+                
+                <div class="content-card">
+                    <h4 class="mb-4"><i class="bi bi-clock-history me-2"></i>Câu hỏi chờ duyệt (<span th:text="${#lists.size(cauHois)}">0</span>)</h4>
+                    
+                    <div th:if="${cauHois != null && !cauHois.isEmpty()}">
+                        <div th:each="ch : ${cauHois}" class="question-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h5><a th:href="@{/cau-hoi/{id}(id=${ch.id})}" th:text="${ch.tieude}">Tiêu đề</a></h5>
+                                    <p class="text-muted mb-2" th:text="${#strings.abbreviate(ch.noidung, 200)}">Nội dung...</p>
+                                    <div class="small text-muted">
+                                        <span><i class="bi bi-person me-1"></i><th:block th:text="${ch.tennguoidung}">Tác giả</th:block></span>
+                                        <span class="ms-3"><i class="bi bi-clock me-1"></i><th:block th:text="${#temporals.format(ch.ngaydang, 'dd/MM/yyyy HH:mm')}">Ngày</th:block></span>
+                                        <span class="ms-3 badge bg-info" th:text="${ch.chude?.tenchude}">Chủ đề</span>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <form th:action="@{/admin/cau-hoi/{id}/duyet(id=${ch.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg me-1"></i>Duyệt</button>
+                                    </form>
+                                    <form th:action="@{/admin/cau-hoi/{id}/xoa(id=${ch.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Xóa câu hỏi này?')"><i class="bi bi-trash me-1"></i>Xóa</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5">
+                        <i class="bi bi-check-circle display-1 text-success"></i>
+                        <p class="text-muted mt-3">Không có câu hỏi nào đang chờ duyệt.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

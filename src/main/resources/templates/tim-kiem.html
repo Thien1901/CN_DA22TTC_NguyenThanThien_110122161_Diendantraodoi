@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm - Diễn đàn CNTT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <style>
+        :root { --primary-color: #4361ee; --secondary-color: #3f37c9; --accent-color: #4895ef; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+        .question-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .question-title { color: #333; font-weight: 600; text-decoration: none; }
+        .question-title:hover { color: var(--primary-color); }
+        .sidebar-category { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .category-item { padding: 10px 15px; border-radius: 10px; margin-bottom: 5px; text-decoration: none; color: #333; display: block; }
+        .category-item:hover { background-color: #e7f1ff; color: var(--primary-color); }
+        .search-header { background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-house-fill me-1"></i>Trang chủ</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <div class="search-header">
+            <h4><i class="bi bi-search me-2"></i>Kết quả tìm kiếm</h4>
+            <p class="mb-0">Từ khóa: "<strong th:text="${keyword}">keyword</strong>" - Tìm thấy <strong th:text="${totalItems}">0</strong> kết quả</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div th:if="${cauHois != null && !cauHois.isEmpty()}">
+                    <div th:each="cauHoi : ${cauHois}" class="question-card">
+                        <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title">
+                            <th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block>
+                        </a>
+                        <p class="text-muted mt-2 mb-2" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p>
+                        <div class="d-flex flex-wrap gap-3 text-muted small">
+                            <span><i class="bi bi-person me-1"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span>
+                            <span><i class="bi bi-clock me-1"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy')}">Ngày</th:block></span>
+                            <span><i class="bi bi-eye me-1"></i><th:block th:text="${cauHoi.luotxem}">0</th:block></span>
+                            <span><i class="bi bi-chat me-1"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block></span>
+                            <span class="badge bg-info" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5">
+                    <i class="bi bi-search display-1 text-muted"></i>
+                    <p class="text-muted mt-3">Không tìm thấy kết quả nào cho từ khóa "<span th:text="${keyword}">keyword</span>"</p>
+                    <a th:href="@{/}" class="btn btn-primary">Về trang chủ</a>
+                </div>
+
+                <!-- Pagination -->
+                <nav th:if="${totalPages > 1}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/tim-kiem(keyword=${keyword}, page=${currentPage - 1})}">Trước</a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/tim-kiem(keyword=${keyword}, page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/tim-kiem(keyword=${keyword}, page=${currentPage + 1})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 Diễn đàn CNTT - Nguyễn Thanh Thiên (110122161)</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

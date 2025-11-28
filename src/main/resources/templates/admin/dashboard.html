@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị - Diễn đàn CNTT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <style>
+        :root { --primary-color: #4361ee; --secondary-color: #3f37c9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+        .sidebar { background: white; min-height: calc(100vh - 56px); box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar-link { display: block; padding: 12px 20px; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #e7f1ff; color: var(--primary-color); border-left-color: var(--primary-color); }
+        .stat-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .stat-icon { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .stat-number { font-size: 2rem; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-white me-3"><i class="bi bi-shield-check me-1"></i>Quản trị viên</span>
+                <form th:action="@{/dang-xuat}" method="post">
+                    <button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="py-3">
+                    <a th:href="@{/admin}" class="sidebar-link active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link"><i class="bi bi-people me-2"></i>Người dùng</a>
+                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-dots me-2"></i>Câu hỏi</a>
+                    <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link"><i class="bi bi-clock-history me-2"></i>Chờ duyệt <span class="badge bg-danger" th:text="${cauHoiChoDuyet}" th:if="${cauHoiChoDuyet > 0}">0</span></a>
+                    <hr>
+                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house me-2"></i>Về trang chủ</a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 p-4">
+                <h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3"><i class="bi bi-people"></i></div>
+                                <div>
+                                    <div class="stat-number" th:text="${tongNguoiDung}">0</div>
+                                    <div class="text-muted">Người dùng</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3"><i class="bi bi-clock-history"></i></div>
+                                <div>
+                                    <div class="stat-number" th:text="${cauHoiChoDuyet}">0</div>
+                                    <div class="text-muted">Chờ duyệt</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-info bg-opacity-10 text-info me-3"><i class="bi bi-chat-dots"></i></div>
+                                <div>
+                                    <div class="stat-number" th:text="${tongCauHoi}">0</div>
+                                    <div class="text-muted">Tổng câu hỏi</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Questions -->
+                <div class="stat-card">
+                    <h5 class="mb-3"><i class="bi bi-clock me-2"></i>Câu hỏi mới nhất</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề</th>
+                                    <th>Người đăng</th>
+                                    <th>Chủ đề</th>
+                                    <th>Ngày đăng</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ch : ${cauHoiMoiNhat}">
+                                    <td><a th:href="@{/cau-hoi/{id}(id=${ch.id})}" th:text="${#strings.abbreviate(ch.tieude, 40)}">Tiêu đề</a></td>
+                                    <td th:text="${ch.tennguoidung}">Người đăng</td>
+                                    <td th:text="${ch.chude?.tenchude}">Chủ đề</td>
+                                    <td th:text="${#temporals.format(ch.ngaydang, 'dd/MM/yyyy')}">Ngày</td>
+                                    <td>
+                                        <span th:if="${ch.daduocduyet}" class="badge bg-success">Đã duyệt</span>
+                                        <span th:unless="${ch.daduocduyet}" class="badge bg-warning">Chờ duyệt</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+/* Global Styles - Larger UI */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4895ef;
+    --base-font-size: 18px;
+}
+
+/* Base font size */
+html {
+    font-size: var(--base-font-size);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    background-color: #f8f9fa;
+}
+
+/* Headings */
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.9rem; }
+h4 { font-size: 1.6rem; }
+h5 { font-size: 1.4rem; }
+h6 { font-size: 1.2rem; }
+
+/* Paragraphs and text */
+p, span, label, li, td, th, a {
+    font-size: 1.1rem;
+}
+
+small, .small {
+    font-size: 0.95rem !important;
+}
+
+/* Navbar */
+.navbar {
+    padding: 1rem 0 !important;
+}
+
+.navbar-brand {
+    font-size: 2rem !important;
+    font-weight: bold;
+}
+
+.nav-link {
+    font-size: 1.2rem !important;
+    padding: 0.75rem 1rem !important;
+}
+
+.dropdown-item {
+    font-size: 1.1rem !important;
+    padding: 0.6rem 1.2rem !important;
+}
+
+.dropdown-menu {
+    min-width: 12rem;
+}
+
+/* Buttons */
+.btn {
+    font-size: 1.1rem !important;
+    padding: 0.6rem 1.3rem !important;
+}
+
+.btn-sm {
+    font-size: 1rem !important;
+    padding: 0.4rem 1rem !important;
+}
+
+.btn-lg {
+    font-size: 1.3rem !important;
+    padding: 0.8rem 1.8rem !important;
+}
+
+/* Forms */
+.form-control, .form-select {
+    font-size: 1.1rem !important;
+    padding: 0.7rem 1rem !important;
+}
+
+.form-label {
+    font-size: 1.1rem !important;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+textarea.form-control {
+    min-height: 120px;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    font-size: 1.3rem;
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.4rem;
+}
+
+.card-text {
+    font-size: 1.1rem;
+}
+
+/* Tables */
+.table {
+    font-size: 1.1rem;
+}
+
+.table th {
+    font-size: 1.15rem;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 0.9rem 1rem;
+}
+
+/* Alerts */
+.alert {
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.95rem !important;
+    padding: 0.5em 0.8em !important;
+}
+
+/* Search box */
+.search-box input {
+    font-size: 1.1rem !important;
+    padding: 0.7rem 1rem 0.7rem 2.8rem !important;
+    border-radius: 25px;
+}
+
+.search-box i {
+    font-size: 1.2rem;
+}
+
+/* Icons */
+.bi {
+    font-size: 1.1em;
+}
+
+/* Pagination */
+.page-link {
+    font-size: 1.1rem;
+    padding: 0.6rem 1rem;
+}
+
+/* Modal */
+.modal-title {
+    font-size: 1.5rem;
+}
+
+.modal-body {
+    font-size: 1.1rem;
+}
+
+/* Lists */
+.list-group-item {
+    font-size: 1.1rem;
+    padding: 1rem 1.25rem;
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    font-size: 1.15rem !important;
+    padding: 0.8rem 1.5rem !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    font-size: 1.1rem;
+}
+
+/* Question/Answer cards */
+.question-card, .answer-card {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+}
+
+.question-card h5, .answer-card h5 {
+    font-size: 1.4rem;
+}
+
+/* Profile avatar in navbar */
+.navbar .rounded-circle {
+    width: 36px !important;
+    height: 36px !important;
+}
+
+/* Stats numbers */
+.h3, .display-4, .display-5 {
+    font-weight: bold;
+}
+
+/* Container */
+.container {
+    max-width: 1400px;
+}
+
+/* Footer text */
+footer, footer p, footer a {
+    font-size: 1rem;
+}
+
+/* Topic cards */
+.topic-card {
+    padding: 1.2rem;
+}
+
+.topic-card h6 {
+    font-size: 1.2rem;
+}
+
+/* Comment avatar */
+.answer-card img.rounded-circle {
+    width: 50px !important;
+    height: 50px !important;
+}
+
+/* Admin dashboard stats */
+.admin-stat h2 {
+    font-size: 2.5rem;
+}
+
+.admin-stat p {
+    font-size: 1.2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.6rem !important;
+    }
+    
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Ask Question Button - Prominent CTA */
+.btn-ask-question {
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    color: white !important;
+    border: none;
+    font-size: 1.4rem !important;
+    font-weight: 600;
+    padding: 1rem 2rem !important;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(67, 97, 238, 0.4);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    animation: pulse-glow 2s infinite;
+}
+
+.btn-ask-question:hover {
+    background: linear-gradient(135deg, #3651de 0%, #560bad 100%);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 30px rgba(67, 97, 238, 0.5);
+    color: white !important;
+}
+
+.btn-ask-question:active {
+    transform: translateY(0) scale(1);
+}
+
+.btn-ask-question i {
+    font-size: 1.3rem;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(67, 97, 238, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(114, 9, 183, 0.6);
+    }
+}
+
+/* Mobile adjustments for ask button */
+@media (max-width: 576px) {
+    .btn-ask-question {
+        font-size: 1.1rem !important;
+        padding: 0.8rem 1.5rem !important;
+    }
+}
+
+/* Topic Dropdown Menu */
+.dropdown-menu-topic {
+    min-width: 280px;
+    padding: 12px;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.15);
+}
+
+.dropdown-menu-topic .dropdown-item {
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu-topic .dropdown-item:hover {
+    background-color: #e7f1ff;
+    transform: translateX(5px);
+}
+
+.dropdown-menu-topic .dropdown-item i {
+    font-size: 1.2rem;
+    width: 28px;
+}
+
+.dropdown-menu-topic .dropdown-item.active {
+    background: linear-gradient(135deg, #4361ee, #3f37c9);
+    color: white !important;
+}
+
+.dropdown-menu-topic .dropdown-item.active i {
+    color: white !important;
+}

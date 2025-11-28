@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diễn đàn Trao đổi Kiến thức CNTT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --bg-light: #f8f9fa;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-light); }
+        .navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 15px 0; }
+        .navbar-brand { font-weight: bold; font-size: 2.2rem; }
+        .nav-link { font-size: 1.3rem; padding: 10px 15px !important; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border: none; border-radius: 25px; padding: 10px 25px; }
+        .category-item { padding: 12px 15px; border-radius: 10px; margin-bottom: 8px; transition: all 0.3s ease; text-decoration: none; color: #333; display: flex; align-items: center; }
+        .category-item:hover { background-color: #e7f1ff; color: var(--primary-color); }
+        .question-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .question-title { color: #333; font-weight: 600; text-decoration: none; font-size: 1.1rem; }
+        .question-title:hover { color: var(--primary-color); }
+        .question-meta { color: #6c757d; font-size: 0.85rem; }
+        .badge-category { background: linear-gradient(135deg, var(--accent-color), var(--success-color)); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; }
+        .stats-box { background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white; border-radius: 15px; padding: 20px; text-align: center; }
+        .footer { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 40px 0; margin-top: 50px; }
+        .search-box { position: relative; }
+        .search-box input { border-radius: 25px; padding-left: 45px; border: 2px solid #e9ecef; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; }
+        .sidebar-category { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .hero-section { background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white; border-radius: 20px; padding: 40px; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" th:href="@{/}"><i class="bi bi-house-fill me-1"></i>Trang chủ</a></li>
+                    <!-- Dropdown Chủ đề -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-grid-fill me-1"></i>Chủ đề
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-topic">
+                            <li th:each="cd : ${danhSachChuDeGlobal}">
+                                <a class="dropdown-item d-flex align-items-center" th:href="@{/chu-de/{ma}(ma=${cd.machude})}">
+                                    <i th:class="${cd.icon} + ' me-2 text-primary'"></i>
+                                    <span th:text="${cd.tenchude}">Chủ đề</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <form class="d-flex me-3" th:action="@{/tim-kiem}" method="get">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input class="form-control" type="search" name="keyword" placeholder="Tìm kiếm...">
+                    </div>
+                </form>
+                <ul class="navbar-nav">
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin}"><i class="bi bi-gear-fill me-1"></i>Quản trị</a></li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a></li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/dang-ky}"><i class="bi bi-person-plus-fill me-1"></i>Đăng ký</a></li>
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                            <img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                            <span sec:authentication="name">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><form th:action="@{/dang-xuat}" method="post"><button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button></form></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+        <!-- Hero Section -->
+        <div class="hero-section text-center">
+            <h1 class="display-5 fw-bold mb-3"><i class="bi bi-mortarboard-fill me-2"></i>Diễn đàn Trao đổi Kiến thức Công Nghệ Thông Tin</h1>
+            <p class="lead mb-4">Nền tảng chia sẻ kiến thức, thảo luận học thuật dành cho sinh viên và giảng viên</p>
+        </div>
+
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-12">
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Top Questions Sidebar -->
+                <div class="row">
+                    <div class="col-lg-9">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Câu hỏi mới nhất</h4>
+                            <a th:href="@{/cau-hoi/dang-moi}" class="btn btn-ask-question btn-lg" sec:authorize="isAuthenticated()">
+                                <i class="bi bi-plus-circle-fill me-2"></i>Đặt câu hỏi ngay
+                            </a>
+                        </div>
+
+                <!-- Question List -->
+                        <div th:if="${cauHois != null && !cauHois.isEmpty()}">
+                            <div th:each="cauHoi : ${cauHois}" class="question-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title">
+                                            <th:block th:text="${cauHoi.tieude}">Tiêu đề câu hỏi</th:block>
+                                        </a>
+                                        <p class="text-muted mt-2 mb-2" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p>
+                                        <div class="question-meta d-flex flex-wrap gap-3">
+                                            <span><i class="bi bi-person me-1"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span>
+                                            <span><i class="bi bi-clock me-1"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
+                                            <span><i class="bi bi-eye me-1"></i><th:block th:text="${cauHoi.luotxem}">0</th:block> lượt xem</span>
+                                            <span><i class="bi bi-chat me-1"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block> trả lời</span>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <span class="badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <p class="text-muted mt-3">Chưa có câu hỏi nào. Hãy là người đầu tiên đặt câu hỏi!</p>
+                        </div>
+
+                        <!-- Pagination -->
+                        <nav th:if="${totalPages > 1}" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/(page=${currentPage - 1})}">Trước</a>
+                                </li>
+                                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                                    <a class="page-link" th:href="@{/(page=${i})}" th:text="${i + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/(page=${currentPage + 1})}">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    
+                    <!-- Sidebar - Câu hỏi nổi bật -->
+                    <div class="col-lg-3">
+                        <div class="sidebar-category" th:if="${cauHoiNoiBat != null && !cauHoiNoiBat.isEmpty()}">
+                            <h5 class="mb-3"><i class="bi bi-fire me-2 text-danger"></i>Câu hỏi nổi bật</h5>
+                            <div th:each="ch : ${cauHoiNoiBat}" class="mb-2">
+                                <a th:href="@{/cau-hoi/{id}(id=${ch.id})}" class="text-decoration-none text-dark small">
+                                    <i class="bi bi-chat-dots me-1"></i>
+                                    <span th:text="${#strings.abbreviate(ch.tieude, 40)}">Tiêu đề</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-white"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5>
+                    <p class="text-light opacity-75">Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-white">Liên kết</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light opacity-75 text-decoration-none">Về chúng tôi</a></li>
+                        <li><a href="#" class="text-light opacity-75 text-decoration-none">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-white">Thông tin</h6>
+                    <p class="text-light opacity-75 mb-1">Sinh viên: Nguyễn Thanh Thiên</p>
+                    <p class="text-light opacity-75 mb-1">MSSV: 110122161</p>
+                    <p class="text-light opacity-75">Lớp: DA22TTC</p>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+            <p class="text-center text-light opacity-75 mb-0">&copy; 2025 Diễn đàn CNTT</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
