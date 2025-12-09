@@ -13,4 +13,13 @@ public interface CauTraLoiRepository extends MongoRepository<CauTraLoi, String> 
     long countByMacauhoi(String macauhoi);
     long countByManguoidung(String manguoidung);
     void deleteByMacauhoi(String macauhoi);
+    
+    // Tìm các bình luận gốc (không có cha)
+    List<CauTraLoi> findByMacauhoiAndMacautraloichaIsNullOrderByNgaytraloi(String macauhoi);
+    
+    // Tìm các bình luận con theo ID bình luận cha
+    List<CauTraLoi> findByMacautraloichaOrderByNgaytraloi(String macautraloicha);
+    
+    // Đếm số bình luận con
+    long countByMacautraloicha(String macautraloicha);
 }

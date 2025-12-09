@@ -65,7 +65,8 @@ public class CauHoiController {
         }
         
         model.addAttribute("cauHoi", cauHoi);
-        model.addAttribute("cauTraLois", cauTraLoiService.timTheoCauHoi(id));
+        // Sử dụng cấu trúc cây cho bình luận lồng nhau
+        model.addAttribute("cauTraLois", cauTraLoiService.timTheoCauHoiDangCay(id));
         
         return "cau-hoi/chi-tiet";
     }
@@ -321,6 +322,102 @@ public class CauHoiController {
         return "redirect:/cau-hoi/" + id;
     }
     
+    /**
+     * Trả lời một bình luận (reply to comment)
+     */
+    @PostMapping("/{cauhoiId}/tra-loi/{traloiId}/phan-hoi")
+    public String phanHoiBinhLuan(
+            @PathVariable String cauhoiId,
+            @PathVariable String traloiId,
+            @RequestParam String noidung,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        
+        if (authentication == null) {
+            return "redirect:/dang-nhap";
+        }
+        
+        Optional<CauHoi> cauHoiOpt = cauHoiService.timTheoId(cauhoiId);
+        if (cauHoiOpt.isEmpty()) {
+            return "redirect:/";
+        }
+        
+        CauHoi cauHoi = cauHoiOpt.get();
+        
+        // Tìm bình luận cha
+        Optional<CauTraLoi> binhLuanChaOpt = cauTraLoiService.timTheoId(traloiId);
+        if (binhLuanChaOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bình luận!");
+            return "redirect:/cau-hoi/" + cauhoiId;
+        }
+        
+        CauTraLoi binhLuanCha = binhLuanChaOpt.get();
+        
+        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
+        if (nguoiDungOpt.isEmpty()) {
+            return "redirect:/dang-nhap";
+        }
+        
+        NguoiDung nguoiDung = nguoiDungOpt.get();
+        
+        // Tạo bình luận con
+        CauTraLoi binhLuanCon = new CauTraLoi();
+        binhLuanCon.setMacauhoi(cauhoiId);
+        binhLuanCon.setManguoidung(nguoiDung.getManguoidung());
+        binhLuanCon.setTennguoidung(nguoiDung.getHoten());
+        binhLuanCon.setAnhdaidien(nguoiDung.getAnhdaidien());
+        binhLuanCon.setNoidung(noidung);
+        binhLuanCon.setNgaytraloi(LocalDateTime.now());
+        binhLuanCon.setMacautraloicha(traloiId); // Link đến bình luận cha
+        binhLuanCon.setTenNguoiDuocTraLoi(binhLuanCha.getTennguoidung()); // Lưu tên người được reply
+        
+        cauTraLoiService.luu(binhLuanCon);
+        
+        // Cập nhật số bình luận
+        long soBinhLuan = cauTraLoiService.demTheoCauHoi(cauhoiId);
+        cauHoiService.capNhatSoBinhLuan(cauhoiId, (int) soBinhLuan);
+        
+        // Gửi thông báo cho người được reply (nếu không phải chính mình)
+        if (!nguoiDung.getManguoidung().equals(binhLuanCha.getManguoidung())) {
+            String tieude = "Có người phản hồi bình luận của bạn";
+            String noiDungTB = nguoiDung.getHoten() + " đã phản hồi bình luận của bạn trong câu hỏi: \"" + 
+                              (cauHoi.getTieude().length() > 40 ? cauHoi.getTieude().substring(0, 40) + "..." : cauHoi.getTieude()) + "\"";
+            String link = "/cau-hoi/" + cauhoiId;
+            thongBaoService.taoThongBao(
+                binhLuanCha.getManguoidung(),
+                tieude,
+                noiDungTB,
+                link,
+                "REPLY",
+                nguoiDung.getManguoidung(),
+                nguoiDung.getHoten(),
+                nguoiDung.getAnhdaidien()
+            );
+        }
+        
+        // Nếu người đăng câu hỏi khác người reply VÀ khác người được reply -> thông báo cho họ
+        if (!nguoiDung.getManguoidung().equals(cauHoi.getManguoidung()) 
+            && !binhLuanCha.getManguoidung().equals(cauHoi.getManguoidung())) {
+            String tieude = "Có thảo luận mới trong câu hỏi của bạn";
+            String noiDungTB = nguoiDung.getHoten() + " đã tham gia thảo luận trong câu hỏi của bạn";
+            String link = "/cau-hoi/" + cauhoiId;
+            thongBaoService.taoThongBao(
+                cauHoi.getManguoidung(),
+                tieude,
+                noiDungTB,
+                link,
+                "REPLY",
+                nguoiDung.getManguoidung(),
+                nguoiDung.getHoten(),
+                nguoiDung.getAnhdaidien()
+            );
+        }
+        
+        redirectAttributes.addFlashAttribute("success", "Đã gửi phản hồi!");
+        
+        return "redirect:/cau-hoi/" + cauhoiId;
+    }
+
     @PostMapping("/{cauhoiId}/tra-loi/{id}/xoa")
     public String xoaTraLoi(
             @PathVariable String cauhoiId,

@@ -1,91 +1,138 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tìm kiếm - Diễn đàn CNTT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link th:href="@{/css/main.css}" rel="stylesheet">
-    <style>
-        :root { --primary-color: #4361ee; --secondary-color: #3f37c9; --accent-color: #4895ef; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
-        .navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
-        .question-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
-        .question-title { color: #333; font-weight: 600; text-decoration: none; }
-        .question-title:hover { color: var(--primary-color); }
-        .sidebar-category { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
-        .category-item { padding: 10px 15px; border-radius: 10px; margin-bottom: 5px; text-decoration: none; color: #333; display: block; }
-        .category-item:hover { background-color: #e7f1ff; color: var(--primary-color); }
-        .search-header { background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; }
-    </style>
+    <link th:href="@{/css/design-system.css}" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="bi bi-list"></i></button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-house-fill me-1"></i>Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-house"></i>Trang chủ</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-grid"></i>Chủ đề</a>
+                        <ul class="dropdown-menu dropdown-menu-topic">
+                            <li><a class="dropdown-item" th:href="@{/tat-ca-cau-hoi}"><i class="bi bi-collection"></i>Tất cả câu hỏi</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li th:each="cd : ${danhSachChuDeGlobal}"><a class="dropdown-item" th:href="@{/chu-de/{ma}(ma=${cd.machude})}"><i th:class="${cd.icon != null ? cd.icon : 'bi bi-folder'}"></i><span th:text="${cd.tenchude}">Chủ đề</span></a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <form class="d-none d-lg-flex me-3" th:action="@{/tim-kiem}" method="get" id="searchForm" autocomplete="off">
+                    <div class="search-box"><i class="bi bi-search"></i><input class="form-control" type="search" name="q" id="searchInput" placeholder="Tìm kiếm câu hỏi..." th:value="${keyword}"><div class="search-suggestions" id="searchSuggestions"></div></div>
+                </form>
+                <ul class="navbar-nav">
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin}"><i class="bi bi-shield-lock"></i>Quản trị</a></li>
+                    <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="btn btn-cta" th:href="@{/cau-hoi/dang-moi}"><i class="bi bi-plus-lg"></i>Đặt câu hỏi</a></li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right"></i>Đăng nhập</a></li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="btn btn-primary ms-2" th:href="@{/dang-ky}"><i class="bi bi-person-plus"></i>Đăng ký</a></li>
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown"><img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm me-2" alt="Avatar"><span sec:authentication="name">User</span></a>
+                        <ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person"></i>Hồ sơ cá nhân</a></li><li><a class="dropdown-item" th:href="@{/ho-so/cau-hoi-cua-toi}"><i class="bi bi-question-circle"></i>Câu hỏi của tôi</a></li><li><hr class="dropdown-divider"></li><li><form th:action="@{/dang-xuat}" method="post" class="m-0"><button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button></form></li></ul>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-
-    <main class="container py-4">
-        <div class="search-header">
-            <h4><i class="bi bi-search me-2"></i>Kết quả tìm kiếm</h4>
-            <p class="mb-0">Từ khóa: "<strong th:text="${keyword}">keyword</strong>" - Tìm thấy <strong th:text="${totalItems}">0</strong> kết quả</p>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12">
+    <main class="py-5">
+        <div class="container">
+            <div class="hero-section text-center mb-5">
+                <h1 class="fw-bold mb-3"><i class="bi bi-search me-2"></i>Tìm kiếm</h1>
+                <p class="lead opacity-85 mb-4" th:if="${keyword != null && !keyword.isEmpty()}">Kết quả cho "<strong th:text="${keyword}">từ khóa</strong>" - Tìm thấy <strong th:text="${totalItems}">0</strong> kết quả</p>
+                <p class="lead opacity-85 mb-4" th:if="${keyword == null || keyword.isEmpty()}">Nhập từ khóa để tìm kiếm câu hỏi trên diễn đàn</p>
+                <form th:action="@{/tim-kiem}" method="get" class="d-flex justify-content-center">
+                    <div class="input-group" style="max-width: 600px;">
+                        <input class="form-control form-control-lg" type="search" name="q" placeholder="Tìm kiếm câu hỏi, chủ đề..." th:value="${keyword}" autofocus style="border-radius: 25px 0 0 25px; border: none;">
+                        <button type="submit" class="btn btn-light btn-lg" style="border-radius: 0 25px 25px 0;"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+            </div>
+            
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}"><i class="bi bi-house me-1"></i>Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Tìm kiếm</li>
+                </ol>
+            </nav>
+            
+            <!-- Search Results -->
+            <div th:if="${keyword != null && !keyword.isEmpty()}">
                 <div th:if="${cauHois != null && !cauHois.isEmpty()}">
+                    <h5 class="mb-4 text-secondary"><i class="bi bi-list-ul me-2"></i>Danh sách kết quả</h5>
                     <div th:each="cauHoi : ${cauHois}" class="question-card">
-                        <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title">
-                            <th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block>
-                        </a>
-                        <p class="text-muted mt-2 mb-2" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p>
-                        <div class="d-flex flex-wrap gap-3 text-muted small">
-                            <span><i class="bi bi-person me-1"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span>
-                            <span><i class="bi bi-clock me-1"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy')}">Ngày</th:block></span>
-                            <span><i class="bi bi-eye me-1"></i><th:block th:text="${cauHoi.luotxem}">0</th:block></span>
-                            <span><i class="bi bi-chat me-1"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block></span>
-                            <span class="badge bg-info" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span>
+                        <div class="d-flex gap-3">
+                            <div class="flex-grow-1">
+                                <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title d-block mb-2"><th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block></a>
+                                <p class="text-secondary small mb-3" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p>
+                                <div class="question-meta">
+                                    <span><i class="bi bi-person"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span>
+                                    <span><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
+                                    <span><i class="bi bi-eye"></i><th:block th:text="${cauHoi.luotxem}">0</th:block></span>
+                                    <span><i class="bi bi-chat"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block></span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-
+                
                 <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5">
                     <i class="bi bi-search display-1 text-muted"></i>
-                    <p class="text-muted mt-3">Không tìm thấy kết quả nào cho từ khóa "<span th:text="${keyword}">keyword</span>"</p>
-                    <a th:href="@{/}" class="btn btn-primary">Về trang chủ</a>
+                    <h4 class="mt-3 text-muted">Không tìm thấy kết quả</h4>
+                    <p class="text-muted">Không có câu hỏi nào phù hợp với từ khóa "<strong th:text="${keyword}">từ khóa</strong>"</p>
+                    <div class="mt-3">
+                        <p class="text-muted small">Gợi ý:</p>
+                        <ul class="text-muted small text-start d-inline-block">
+                            <li>Kiểm tra lại chính tả</li>
+                            <li>Thử sử dụng từ khóa khác</li>
+                            <li>Sử dụng từ khóa ngắn gọn hơn</li>
+                        </ul>
+                    </div>
+                    <a th:href="@{/}" class="btn btn-primary mt-3"><i class="bi bi-house me-2"></i>Về trang chủ</a>
                 </div>
-
-                <!-- Pagination -->
-                <nav th:if="${totalPages > 1}" class="mt-4">
+                
+                <nav th:if="${totalPages != null && totalPages > 1}" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/tim-kiem(keyword=${keyword}, page=${currentPage - 1})}">Trước</a>
-                        </li>
-                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/tim-kiem(keyword=${keyword}, page=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/tim-kiem(keyword=${keyword}, page=${currentPage + 1})}">Sau</a>
-                        </li>
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/tim-kiem(q=${keyword}, page=${currentPage - 1})}"><i class="bi bi-chevron-left"></i></a></li>
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'"><a class="page-link" th:href="@{/tim-kiem(q=${keyword}, page=${i})}" th:text="${i + 1}">1</a></li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/tim-kiem(q=${keyword}, page=${currentPage + 1})}"><i class="bi bi-chevron-right"></i></a></li>
                     </ul>
                 </nav>
             </div>
+            
+            <!-- Initial State -->
+            <div th:if="${keyword == null || keyword.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-search display-1 text-muted"></i>
+                <h4 class="mt-3 text-muted">Bắt đầu tìm kiếm</h4>
+                <p class="text-muted">Nhập từ khóa vào ô tìm kiếm ở trên để tìm câu hỏi</p>
+                <div class="mt-4">
+                    <h6 class="text-muted mb-3">Hoặc duyệt theo chủ đề:</h6>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <a th:href="@{/tat-ca-cau-hoi}" class="btn btn-outline-primary"><i class="bi bi-collection me-1"></i>Tất cả câu hỏi</a>
+                        <a th:each="cd : ${danhSachChuDeGlobal}" th:href="@{/chu-de/{ma}(ma=${cd.machude})}" class="btn btn-outline-secondary"><i th:class="${cd.icon} + ' me-1'"></i><span th:text="${cd.tenchude}">Chủ đề</span></a>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
-
-    <footer class="bg-dark text-white py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 Diễn đàn CNTT - Nguyễn Thanh Thiên (110122161)</p>
-        </div>
-    </footer>
+    <footer class="footer"><div class="container"><div class="row g-4"><div class="col-lg-5"><h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5><p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p></div><div class="col-lg-3"><h6>Liên kết nhanh</h6><ul class="list-unstyled"><li><a th:href="@{/}">Trang chủ</a></li><li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li></ul></div><div class="col-lg-4"><h6>Thông tin dự án</h6><ul class="list-unstyled"><li>SV: Nguyễn Thanh Thiên</li><li>MSSV: 110122161</li><li>Lớp: DA22TTC</li></ul></div></div><hr><p class="text-center mb-0">© 2025 Diễn đàn CNTT</p></div></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function initSearchSuggestions(){const si=document.getElementById('searchInput'),ss=document.getElementById('searchSuggestions');if(!si||!ss)return;let dt;si.addEventListener('focus',()=>loadSuggestions(si.value));si.addEventListener('input',function(){clearTimeout(dt);dt=setTimeout(()=>loadSuggestions(this.value),200)});document.addEventListener('click',function(e){if(!si.contains(e.target)&&!ss.contains(e.target))ss.classList.remove('show')});function loadSuggestions(q){const url=q.trim()?'/api/tim-kiem/goi-y?q='+encodeURIComponent(q):'/api/tim-kiem/goi-y';fetch(url).then(r=>r.json()).then(d=>renderSuggestions(d,q)).catch(()=>{})}function renderSuggestions(d,q){if(!d||d.length===0){ss.innerHTML='<div class="search-suggestions-header">Không có kết quả</div><div class="p-4 text-center text-muted"><i class="bi bi-search fs-3 d-block mb-2"></i><small>Thử tìm kiếm với từ khóa khác</small></div>';ss.classList.add('show');return}const h=q.trim()?'Kết quả cho "'+q+'"':'Câu hỏi mới nhất';let html='<div class="search-suggestions-header">'+h+'</div>';d.forEach(i=>{html+='<div class="suggestion-item" onclick="goToQuestion(\''+i.id+'\')"><div class="suggestion-avatar">'+(i.chuCaiDau||'U')+'</div><div class="suggestion-content"><div class="suggestion-title">'+i.tieude+'</div><div class="suggestion-meta"><span><i class="bi bi-person"></i> '+i.tennguoidung+'</span><span><i class="bi bi-eye"></i> '+i.luotxem+'</span></div></div></div>'});if(q.trim())html+='<div class="search-view-all"><a href="/tim-kiem?q='+encodeURIComponent(q)+'"><i class="bi bi-arrow-right me-1"></i>Xem tất cả</a></div>';ss.innerHTML=html;ss.classList.add('show')}}
+    function goToQuestion(id){window.location.href='/cau-hoi/'+id}
+    document.addEventListener('DOMContentLoaded',initSearchSuggestions);
+    </script>
 </body>
 </html>

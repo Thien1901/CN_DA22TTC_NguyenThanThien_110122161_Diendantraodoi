@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${chuDe.tenchude + ' - Diễn đàn CNTT'}">Chủ đề - Diễn đàn CNTT</title>
+    <title>Tất cả câu hỏi - Diễn đàn CNTT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,14 +22,9 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown"><i class="bi bi-grid"></i>Chủ đề</a>
                         <ul class="dropdown-menu dropdown-menu-topic">
-                            <li><a class="dropdown-item" th:href="@{/tat-ca-cau-hoi}"><i class="bi bi-collection"></i>Tất cả câu hỏi</a></li>
+                            <li><a class="dropdown-item active" th:href="@{/tat-ca-cau-hoi}"><i class="bi bi-collection"></i>Tất cả câu hỏi</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li th:each="cd : ${danhSachChuDeGlobal}">
-                                <a class="dropdown-item" th:href="@{/chu-de/{ma}(ma=${cd.machude})}" th:classappend="${cd.machude == chuDe.machude} ? ' active' : ''">
-                                    <i th:class="${cd.icon != null ? cd.icon : 'bi bi-folder'}"></i>
-                                    <span th:text="${cd.tenchude}">Chủ đề</span>
-                                </a>
-                            </li>
+                            <li th:each="cd : ${danhSachChuDeGlobal}"><a class="dropdown-item" th:href="@{/chu-de/{ma}(ma=${cd.machude})}"><i th:class="${cd.icon != null ? cd.icon : 'bi bi-folder'}"></i><span th:text="${cd.tenchude}">Chủ đề</span></a></li>
                         </ul>
                     </li>
                 </ul>
@@ -52,19 +47,14 @@
     <main class="py-5">
         <div class="container">
             <div class="hero-section text-center mb-5">
-                <i th:class="${chuDe.icon} + ' display-3 mb-3'"></i>
-                <h1 class="fw-bold mb-3" th:text="${chuDe.tenchude}">Tên chủ đề</h1>
-                <p class="lead opacity-85 mb-0" th:text="${chuDe.mota}">Mô tả chủ đề</p>
-                <div class="mt-3">
-                    <span class="badge bg-white bg-opacity-25 px-3 py-2"><i class="bi bi-chat-dots me-1"></i><span th:text="${totalItems}">0</span> câu hỏi</span>
-                </div>
+                <h1 class="fw-bold mb-3"><i class="bi bi-collection me-2"></i>Tất cả câu hỏi</h1>
+                <p class="lead opacity-85 mb-0">Danh sách tất cả <span th:text="${totalItems}">0</span> câu hỏi trên diễn đàn</p>
             </div>
             
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a th:href="@{/}"><i class="bi bi-house me-1"></i>Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a th:href="@{/tat-ca-cau-hoi}">Chủ đề</a></li>
-                    <li class="breadcrumb-item active" th:text="${chuDe.tenchude}">Chủ đề</li>
+                    <li class="breadcrumb-item active">Tất cả câu hỏi</li>
                 </ol>
             </nav>
             
@@ -82,24 +72,24 @@
                             </div>
                         </div>
                         <div class="flex-shrink-0">
-                            <span class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span>
+                            <a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5">
-                <i th:class="${chuDe.icon} + ' display-1 text-muted'"></i>
-                <h4 class="mt-3 text-muted">Chưa có câu hỏi nào trong chủ đề này</h4>
-                <p class="text-muted">Hãy là người đầu tiên đặt câu hỏi về <span th:text="${chuDe.tenchude}">chủ đề</span>!</p>
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="mt-3 text-muted">Chưa có câu hỏi nào</h4>
+                <p class="text-muted">Hãy là người đầu tiên đặt câu hỏi!</p>
                 <a th:href="@{/cau-hoi/dang-moi}" class="btn btn-cta mt-2" sec:authorize="isAuthenticated()"><i class="bi bi-plus-circle-fill me-2"></i>Đặt câu hỏi ngay</a>
             </div>
             
             <nav th:if="${totalPages > 1}" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/chu-de/{ma}(ma=${chuDe.machude}, page=${currentPage - 1})}"><i class="bi bi-chevron-left"></i></a></li>
-                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'"><a class="page-link" th:href="@{/chu-de/{ma}(ma=${chuDe.machude}, page=${i})}" th:text="${i + 1}">1</a></li>
-                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/chu-de/{ma}(ma=${chuDe.machude}, page=${currentPage + 1})}"><i class="bi bi-chevron-right"></i></a></li>
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/tat-ca-cau-hoi(page=${currentPage - 1})}"><i class="bi bi-chevron-left"></i></a></li>
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'"><a class="page-link" th:href="@{/tat-ca-cau-hoi(page=${i})}" th:text="${i + 1}">1</a></li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/tat-ca-cau-hoi(page=${currentPage + 1})}"><i class="bi bi-chevron-right"></i></a></li>
                 </ul>
             </nav>
         </div>

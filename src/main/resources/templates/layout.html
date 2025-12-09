@@ -1,206 +1,124 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Diễn đàn trao đổi kiến thức chuyên ngành Công nghệ thông tin">
     <title th:text="${pageTitle != null ? pageTitle + ' - Diễn đàn CNTT' : 'Diễn đàn CNTT'}">Diễn đàn CNTT</title>
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link th:href="@{/css/main.css}" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --success-color: #4cc9f0;
-            --bg-light: #f8f9fa;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-light);
-        }
-        
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 0;
-        }
-        
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 2.2rem;
-        }
-        
-        .nav-link {
-            font-size: 1.3rem;
-            padding: 10px 15px !important;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 25px;
-            padding: 10px 25px;
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-        }
-        
-        .sidebar-category {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-        }
-        
-        .category-item {
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: #333;
-            display: flex;
-            align-items: center;
-        }
-        
-        .category-item:hover {
-            background-color: #e7f1ff;
-            color: var(--primary-color);
-        }
-        
-        .category-icon {
-            font-size: 1.5rem;
-            margin-right: 10px;
-        }
-        
-        .question-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .question-title {
-            color: #333;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        
-        .question-title:hover {
-            color: var(--primary-color);
-        }
-        
-        .question-meta {
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        .badge-category {
-            background: linear-gradient(135deg, var(--accent-color), var(--success-color));
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-        
-        .stats-box {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            color: white;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .footer {
-            background: #2d3436;
-            color: white;
-            padding: 30px 0;
-            margin-top: 50px;
-        }
-        
-        .search-box {
-            position: relative;
-        }
-        
-        .search-box input {
-            border-radius: 25px;
-            padding-left: 45px;
-            border: 2px solid #e9ecef;
-        }
-        
-        .search-box input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-        }
-    </style>
+    <!-- Design System CSS -->
+    <link th:href="@{/css/design-system.css}" rel="stylesheet">
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" th:href="@{/}">
-                <i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT
+                <i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/}"><i class="bi bi-house-fill me-1"></i>Trang chủ</a>
+                        <a class="nav-link" th:href="@{/}">
+                            <i class="bi bi-house"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-grid"></i>Chủ đề
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-topic">
+                            <li>
+                                <a class="dropdown-item" th:href="@{/tat-ca-cau-hoi}">
+                                    <i class="bi bi-collection"></i>Tất cả câu hỏi
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li th:each="chuDe : ${danhSachChuDe}">
+                                <a class="dropdown-item" th:href="@{/chu-de/{id}(id=${chuDe.id})}">
+                                    <i th:class="${'bi ' + (chuDe.icon != null ? chuDe.icon : 'bi-folder')}"></i>
+                                    <span th:text="${chuDe.tenChuDe}">Tên chủ đề</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
                 
-                <!-- Search form -->
-                <form class="d-flex me-3" th:action="@{/tim-kiem}" method="get">
+                <!-- Search Box -->
+                <form class="d-none d-lg-flex me-3" th:action="@{/tim-kiem}" method="get" id="searchForm" autocomplete="off">
                     <div class="search-box">
                         <i class="bi bi-search"></i>
-                        <input class="form-control" type="search" name="keyword" placeholder="Tìm kiếm...">
+                        <input class="form-control" type="search" name="q" id="searchInput" placeholder="Tìm kiếm câu hỏi...">
+                        <div class="search-suggestions" id="searchSuggestions"></div>
                     </div>
                 </form>
                 
+                <!-- User Navigation -->
                 <ul class="navbar-nav">
+                    <!-- Admin Link -->
                     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                        <a class="nav-link" th:href="@{/admin}"><i class="bi bi-gear-fill me-1"></i>Quản trị</a>
+                        <a class="nav-link" th:href="@{/admin}">
+                            <i class="bi bi-shield-lock"></i>Quản trị
+                        </a>
+                    </li>
+                    
+                    <!-- Ask Question CTA -->
+                    <li class="nav-item me-2" sec:authorize="isAuthenticated()">
+                        <a class="btn btn-cta" th:href="@{/cau-hoi/tao-moi}">
+                            <i class="bi bi-plus-lg"></i>Đặt câu hỏi
+                        </a>
+                    </li>
+                    
+                    <!-- Login/Register -->
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/dang-nhap}">
+                            <i class="bi bi-box-arrow-in-right"></i>Đăng nhập
+                        </a>
                     </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a>
+                        <a class="btn btn-primary ms-2" th:href="@{/dang-ky}">
+                            <i class="bi bi-person-plus"></i>Đăng ký
+                        </a>
                     </li>
-                    <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/dang-ky}"><i class="bi bi-person-plus-fill me-1"></i>Đăng ký</a>
-                    </li>
+                    
+                    <!-- User Dropdown -->
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img th:if="${currentUser != null}" 
+                                 th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}&background=2563eb&color=fff'" 
+                                 class="avatar avatar-sm me-2" 
+                                 alt="Avatar">
                             <span sec:authentication="name">User</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                            <li>
+                                <a class="dropdown-item" th:href="@{/ho-so}">
+                                    <i class="bi bi-person"></i>Hồ sơ cá nhân
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" th:href="@{/ho-so/cau-hoi-cua-toi}">
+                                    <i class="bi bi-question-circle"></i>Câu hỏi của tôi
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form th:action="@{/dang-xuat}" method="post">
-                                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                                <form th:action="@{/dang-xuat}" method="post" class="m-0">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-box-arrow-right"></i>Đăng xuất
+                                    </button>
                                 </form>
                             </li>
                         </ul>
@@ -211,38 +129,137 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="container py-4">
-        <th:block th:replace="${content}"></th:block>
+    <main class="py-5">
+        <div class="container">
+            <th:block th:replace="${content}"></th:block>
+        </div>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
+            <div class="row g-4">
+                <div class="col-lg-5">
                     <h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5>
-                    <p class="text-muted">Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p>
+                    <p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên Công nghệ thông tin.</p>
                 </div>
-                <div class="col-md-3">
-                    <h6>Liên kết</h6>
+                <div class="col-lg-3">
+                    <h6>Liên kết nhanh</h6>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-muted">Về chúng tôi</a></li>
-                        <li><a href="#" class="text-muted">Điều khoản sử dụng</a></li>
-                        <li><a href="#" class="text-muted">Chính sách bảo mật</a></li>
+                        <li><a th:href="@{/}">Trang chủ</a></li>
+                        <li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li>
+                        <li><a th:href="@{/tim-kiem}">Tìm kiếm</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
-                    <h6>Thông tin</h6>
-                    <p class="text-muted mb-1">Sinh viên: Nguyễn Thanh Thiên</p>
-                    <p class="text-muted mb-1">MSSV: 110122161</p>
-                    <p class="text-muted">Lớp: DA22TTC</p>
+                <div class="col-lg-4">
+                    <h6>Thông tin dự án</h6>
+                    <ul class="list-unstyled">
+                        <li>Sinh viên: Nguyễn Thanh Thiên</li>
+                        <li>MSSV: 110122161</li>
+                        <li>Lớp: DA22TTC</li>
+                    </ul>
                 </div>
             </div>
-            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-            <p class="text-center text-muted mb-0">&copy; 2025 Diễn đàn CNTT. All rights reserved.</p>
+            <hr>
+            <p class="text-center mb-0">&copy; 2025 Diễn đàn CNTT. All rights reserved.</p>
         </div>
     </footer>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Search Suggestions Script -->
+    <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        
+        if (!searchInput || !searchSuggestions) return;
+        
+        let debounceTimer;
+        
+        // Load suggestions on focus
+        searchInput.addEventListener('focus', function() {
+            loadSuggestions(this.value);
+        });
+        
+        // Load suggestions on input
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                loadSuggestions(this.value);
+            }, 200);
+        });
+        
+        // Hide suggestions on click outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.remove('show');
+            }
+        });
+        
+        function loadSuggestions(query) {
+            const url = query.trim() 
+                ? `/api/tim-kiem/goi-y?q=${encodeURIComponent(query)}`
+                : '/api/tim-kiem/goi-y';
+            
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    renderSuggestions(data, query);
+                })
+                .catch(err => console.error('Error loading suggestions:', err));
+        }
+        
+        function renderSuggestions(data, query) {
+            if (!data || data.length === 0) {
+                searchSuggestions.innerHTML = `
+                    <div class="search-suggestions-header">Không có kết quả</div>
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-search fs-3 d-block mb-2"></i>
+                        <small>Thử tìm kiếm với từ khóa khác</small>
+                    </div>`;
+                searchSuggestions.classList.add('show');
+                return;
+            }
+            
+            const headerText = query.trim() 
+                ? `Kết quả cho "${query}"`
+                : 'Câu hỏi mới nhất';
+            
+            let html = `<div class="search-suggestions-header">${headerText}</div>`;
+            
+            data.forEach(item => {
+                html += `
+                    <div class="suggestion-item" onclick="goToQuestion('${item.id}')">
+                        <div class="suggestion-avatar">${item.chuCaiDau || 'U'}</div>
+                        <div class="suggestion-content">
+                            <div class="suggestion-title">${item.tieude}</div>
+                            <div class="suggestion-meta">
+                                <span><i class="bi bi-person"></i> ${item.tennguoidung}</span>
+                                <span><i class="bi bi-eye"></i> ${item.luotxem} lượt xem</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            
+            if (query.trim()) {
+                html += `
+                    <div class="search-view-all">
+                        <a href="/tim-kiem?keyword=${encodeURIComponent(query)}">
+                            <i class="bi bi-arrow-right me-1"></i>Xem tất cả kết quả
+                        </a>
+                    </div>`;
+            }
+            
+            searchSuggestions.innerHTML = html;
+            searchSuggestions.classList.add('show');
+        }
+    });
+    
+    function goToQuestion(id) {
+        window.location.href = '/cau-hoi/' + id;
+    }
+    </script>
 </body>
 </html>

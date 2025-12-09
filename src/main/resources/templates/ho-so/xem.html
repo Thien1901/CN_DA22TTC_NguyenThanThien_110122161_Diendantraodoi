@@ -1,154 +1,76 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang cá nhân - Diễn đàn CNTT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link th:href="@{/css/main.css}" rel="stylesheet">
-    <style>
-        :root { --primary-color: #4361ee; --secondary-color: #3f37c9; --accent-color: #4895ef; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
-        .navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 15px 0; }
-        .navbar-brand { font-weight: bold; font-size: 2.2rem; }
-        .nav-link { font-size: 1.3rem; padding: 10px 15px !important; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
-        .search-box { position: relative; }
-        .search-box input { border-radius: 25px; padding-left: 45px; border: 2px solid #e9ecef; }
-        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; }
-    </style>
+    <link th:href="@{/css/design-system.css}" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" th:href="@{/}">
-                <i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="bi bi-list"></i></button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/}"><i class="bi bi-house-fill me-1"></i>Trang chủ</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-house"></i>Trang chủ</a></li>
                 </ul>
-                <form class="d-flex me-3" th:action="@{/tim-kiem}" method="get">
-                    <div class="search-box">
-                        <i class="bi bi-search"></i>
-                        <input class="form-control" type="search" name="keyword" placeholder="Tìm kiếm...">
-                    </div>
+                <form class="d-none d-lg-flex me-3" th:action="@{/tim-kiem}" method="get" autocomplete="off">
+                    <div class="search-box"><i class="bi bi-search"></i><input class="form-control" type="search" name="q" placeholder="Tìm kiếm câu hỏi..."></div>
                 </form>
                 <ul class="navbar-nav">
-                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                        <a class="nav-link" th:href="@{/admin}"><i class="bi bi-gear-fill me-1"></i>Quản trị</a>
-                    </li>
-                    <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a>
-                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin}"><i class="bi bi-shield-lock"></i>Quản trị</a></li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right"></i>Đăng nhập</a></li>
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                            <img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
-                            <span sec:authentication="name">User</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form th:action="@{/dang-xuat}" method="post">
-                                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
-                                </form>
-                            </li>
-                        </ul>
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown"><img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm me-2" alt="Avatar"><span sec:authentication="name">User</span></a>
+                        <ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person"></i>Hồ sơ cá nhân</a></li><li><hr class="dropdown-divider"></li><li><form th:action="@{/dang-xuat}" method="post" class="m-0"><button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button></form></li></ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-
-    <!-- Main Content -->
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-body text-center p-4">
-                        <!-- Ảnh đại diện -->
-                        <img th:src="${nguoiDung.anhdaidien != null && !nguoiDung.anhdaidien.isEmpty()} ? ${nguoiDung.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(nguoiDung.hoten, ' ', '+')}" 
-                             class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #4361ee;">
-                        
-                        <!-- Họ tên -->
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="sidebar-card text-center">
+                        <img th:src="${nguoiDung.anhdaidien != null && !nguoiDung.anhdaidien.isEmpty()} ? ${nguoiDung.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(nguoiDung.hoten, ' ', '+')}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--primary);">
                         <h3 th:text="${nguoiDung.hoten}">Họ tên</h3>
-                        
-                        <!-- Tên đăng nhập -->
-                        <p class="text-muted mb-2">@<span th:text="${nguoiDung.tendangnhap}">username</span></p>
-                        
-                        <!-- Vai trò & Trạng thái -->
+                        <p class="text-secondary mb-2">@<span th:text="${nguoiDung.tendangnhap}">username</span></p>
                         <div class="mb-3">
                             <span class="badge me-1" th:classappend="${nguoiDung.vaitro.mavaitro == 'ADMIN'} ? 'bg-danger' : 'bg-primary'" th:text="${nguoiDung.vaitro.tenvaitro}">Vai trò</span>
-                            <span class="badge" th:classappend="${nguoiDung.trangthai == null || nguoiDung.trangthai == 'hoatdong'} ? 'bg-success' : 'bg-secondary'" 
-                                  th:text="${nguoiDung.trangthai == null || nguoiDung.trangthai == 'hoatdong'} ? 'Hoạt động' : 'Bị khóa'">Trạng thái</span>
+                            <span class="badge" th:classappend="${nguoiDung.trangthai == null || nguoiDung.trangthai == 'hoatdong'} ? 'bg-success' : 'bg-secondary'" th:text="${nguoiDung.trangthai == null || nguoiDung.trangthai == 'hoatdong'} ? 'Hoạt động' : 'Bị khóa'">Trạng thái</span>
                         </div>
-                        
-                        <hr class="my-4">
-                        
-                        <!-- Thông tin chi tiết -->
+                        <hr>
                         <div class="text-start">
-                            <!-- Email -->
-                            <p class="mb-3">
-                                <i class="bi bi-envelope-fill me-2 text-primary"></i>
-                                <strong>Email:</strong><br>
-                                <span class="ms-4" th:text="${nguoiDung.email}">email@example.com</span>
-                            </p>
-                            
-                            <!-- Ngày tạo tài khoản -->
-                            <p class="mb-3">
-                                <i class="bi bi-calendar-check-fill me-2 text-primary"></i>
-                                <strong>Ngày tham gia:</strong><br>
-                                <span class="ms-4" th:text="${#temporals.format(nguoiDung.ngaytao, 'dd/MM/yyyy HH:mm')}">Ngày</span>
-                            </p>
-                            
-                            <!-- Lần hoạt động cuối -->
-                            <p class="mb-3" th:if="${nguoiDung.lanhoatdongcuoi != null}">
-                                <i class="bi bi-clock-history me-2 text-primary"></i>
-                                <strong>Hoạt động gần nhất:</strong><br>
-                                <span class="ms-4" th:text="${#temporals.format(nguoiDung.lanhoatdongcuoi, 'dd/MM/yyyy HH:mm')}">Ngày</span>
-                            </p>
+                            <p class="mb-3"><i class="bi bi-envelope-fill me-2 text-primary"></i><strong>Email:</strong><br><span class="ms-4" th:text="${nguoiDung.email}">email@example.com</span></p>
+                            <p class="mb-3"><i class="bi bi-calendar-check-fill me-2 text-primary"></i><strong>Ngày tham gia:</strong><br><span class="ms-4" th:text="${#temporals.format(nguoiDung.ngaytao, 'dd/MM/yyyy HH:mm')}">Ngày</span></p>
+                            <p class="mb-3" th:if="${nguoiDung.lanhoatdongcuoi != null}"><i class="bi bi-clock-history me-2 text-primary"></i><strong>Hoạt động gần nhất:</strong><br><span class="ms-4" th:text="${#temporals.format(nguoiDung.lanhoatdongcuoi, 'dd/MM/yyyy HH:mm')}">Ngày</span></p>
                         </div>
-                        
-                        <!-- Giới thiệu -->
-                        <div th:if="${nguoiDung.gioithieu != null && !nguoiDung.gioithieu.isEmpty()}" class="text-start mt-3 p-3 bg-light rounded">
-                            <p class="fw-bold mb-2"><i class="bi bi-info-circle me-2 text-primary"></i>Giới thiệu:</p>
-                            <p class="text-muted mb-0" th:text="${nguoiDung.gioithieu}">Bio...</p>
+                        <div th:if="${nguoiDung.gioithieu != null && !nguoiDung.gioithieu.isEmpty()}" class="text-start mt-3 p-3 rounded" style="background:var(--bg-sunken)">
+                            <p class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-primary"></i>Giới thiệu:</p>
+                            <p class="text-secondary mb-0" th:text="${nguoiDung.gioithieu}">Bio...</p>
                         </div>
-                        
-                        <!-- Nút chỉnh sửa (chỉ hiện cho chính user đó) -->
                         <div sec:authorize="isAuthenticated()" th:if="${#authentication.name == nguoiDung.tendangnhap}" class="mt-4">
                             <a th:href="@{/ho-so/chinh-sua}" class="btn btn-primary w-100"><i class="bi bi-pencil-square me-1"></i>Chỉnh sửa hồ sơ</a>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Thống kê -->
-                <div class="card border-0 shadow-sm rounded-3 mt-4">
-                    <div class="card-body text-center">
+                    <div class="sidebar-card mt-4 text-center">
                         <div class="row">
-                            <div class="col">
-                                <div class="h3 text-primary" th:text="${tongCauHoi}">0</div>
-                                <small class="text-muted">Câu hỏi</small>
-                            </div>
-                            <div class="col">
-                                <div class="h3 text-success" th:text="${tongTraLoi}">0</div>
-                                <small class="text-muted">Trả lời</small>
-                            </div>
+                            <div class="col"><div class="h3 text-primary" th:text="${tongCauHoi}">0</div><small class="text-secondary">Câu hỏi</small></div>
+                            <div class="col"><div class="h3 text-success" th:text="${tongTraLoi}">0</div><small class="text-secondary">Trả lời</small></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
+    </main>
+    <footer class="footer"><div class="container"><div class="row g-4"><div class="col-lg-5"><h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5><p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p></div><div class="col-lg-3"><h6>Liên kết nhanh</h6><ul class="list-unstyled"><li><a th:href="@{/}">Trang chủ</a></li><li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li></ul></div><div class="col-lg-4"><h6>Thông tin dự án</h6><ul class="list-unstyled"><li>SV: Nguyễn Thanh Thiên</li><li>MSSV: 110122161</li><li>Lớp: DA22TTC</li></ul></div></div><hr><p class="text-center mb-0">© 2025 Diễn đàn CNTT</p></div></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

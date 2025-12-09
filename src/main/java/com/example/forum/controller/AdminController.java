@@ -1,5 +1,6 @@
 package com.example.forum.controller;
 
+import com.example.forum.model.ChuDeEntity;
 import com.example.forum.model.NguoiDung;
 import com.example.forum.service.*;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class AdminController {
     private final NguoiDungService nguoiDungService;
     private final CauHoiService cauHoiService;
     private final CauTraLoiService cauTraLoiService;
+    private final ChuDeService chuDeService;
     
     @GetMapping
     public String dashboard(Model model) {
@@ -91,5 +93,48 @@ public class AdminController {
         cauHoiService.xoa(id);
         redirectAttributes.addFlashAttribute("success", "Đã xóa câu hỏi!");
         return "redirect:/admin/cau-hoi";
+    }
+    
+    // =================== CHỦ ĐỀ ===================
+    @GetMapping("/chu-de")
+    public String danhSachChuDe(Model model) {
+        model.addAttribute("chuDes", chuDeService.layTatCa());
+        return "admin/chu-de/danh-sach";
+    }
+    
+    @GetMapping("/chu-de/them")
+    public String formThemChuDe(Model model) {
+        model.addAttribute("chuDe", new ChuDeEntity());
+        return "admin/chu-de/form";
+    }
+    
+    @GetMapping("/chu-de/{id}/sua")
+    public String formSuaChuDe(@PathVariable String id, Model model) {
+        Optional<ChuDeEntity> chuDeOpt = chuDeService.timTheoId(id);
+        if (chuDeOpt.isEmpty()) {
+            return "redirect:/admin/chu-de";
+        }
+        model.addAttribute("chuDe", chuDeOpt.get());
+        return "admin/chu-de/form";
+    }
+    
+    @PostMapping("/chu-de/luu")
+    public String luuChuDe(@ModelAttribute ChuDeEntity chuDe, RedirectAttributes redirectAttributes) {
+        // Nếu là chủ đề mới, tạo mã chủ đề và thứ tự tự động
+        if (chuDe.getId() == null || chuDe.getId().isEmpty()) {
+            long count = chuDeService.dem();
+            chuDe.setMachude(String.valueOf(count + 1));
+            chuDe.setThutu((int) count + 1);
+        }
+        chuDeService.luu(chuDe);
+        redirectAttributes.addFlashAttribute("success", "Đã lưu chủ đề thành công!");
+        return "redirect:/admin/chu-de";
+    }
+    
+    @PostMapping("/chu-de/{id}/xoa")
+    public String xoaChuDe(@PathVariable String id, RedirectAttributes redirectAttributes) {
+        chuDeService.xoa(id);
+        redirectAttributes.addFlashAttribute("success", "Đã xóa chủ đề!");
+        return "redirect:/admin/chu-de";
     }
 }
