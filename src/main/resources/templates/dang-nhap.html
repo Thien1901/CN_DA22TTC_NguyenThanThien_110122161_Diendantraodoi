@@ -17,6 +17,12 @@
         .login-body { padding: 2.5rem; }
         .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border: none; border-radius: var(--radius-lg); padding: 0.875rem; font-weight: 600; }
         .btn-login:hover { background: linear-gradient(135deg, var(--primary-hover), var(--primary)); }
+        .form-label { font-weight: 500; color: #1f2937; }
+        .form-control { border: 1px solid #d1d5db; padding: 0.75rem 1rem; font-size: 1rem; color: #1f2937; }
+        .form-control::placeholder { color: #9ca3af; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .alert { border-radius: var(--radius-lg); }
+        .text-center a { font-weight: 500; }
     </style>
 </head>
 <body>
@@ -40,16 +46,23 @@
                                 <label class="form-label"><i class="bi bi-person me-1"></i>Tên đăng nhập</label>
                                 <input type="text" name="tendangnhap" class="form-control" placeholder="Nhập tên đăng nhập" required>
                             </div>
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label class="form-label"><i class="bi bi-lock me-1"></i>Mật khẩu</label>
                                 <input type="password" name="matkhau" class="form-control" placeholder="Nhập mật khẩu" required>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                                    <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
+                                </div>
+                                <a th:href="@{/quen-mat-khau}" class="text-primary">Quên mật khẩu?</a>
                             </div>
                             <button type="submit" class="btn btn-primary btn-login w-100 mb-3">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
                             </button>
                         </form>
                         <div class="text-center">
-                            <p class="mb-0">Chưa có tài khoản? <a th:href="@{/dang-ky}" class="text-primary">Đăng ký ngay</a></p>
+                            <p class="mb-2">Chưa có tài khoản? <a th:href="@{/dang-ky}" class="text-primary">Đăng ký ngay</a></p>
                             <a th:href="@{/}" class="text-muted"><i class="bi bi-arrow-left me-1"></i>Về trang chủ</a>
                         </div>
                     </div>

@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/thong-bao/api/**")
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/cau-hoi/**", "/chuyen-nganh/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/api/**").permitAll()
+                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/cau-hoi/**", "/chuyen-nganh/**", "/chu-de/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/api/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

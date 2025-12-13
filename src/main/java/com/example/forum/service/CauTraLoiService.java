@@ -3,6 +3,7 @@ package com.example.forum.service;
 import com.example.forum.model.CauTraLoi;
 import com.example.forum.repository.CauTraLoiRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CauTraLoiService {
     
     private final CauTraLoiRepository cauTraLoiRepository;
@@ -62,19 +64,22 @@ public class CauTraLoiService {
         return cauTraLoiRepository.findByManguoidungOrderByNgaytraloiDesc(manguoidung);
     }
     
-    public Optional<CauTraLoi> timTheoId(String id) {
+    public Optional<CauTraLoi> timTheoId(@NonNull String id) {
         return cauTraLoiRepository.findById(id);
     }
     
-    public CauTraLoi luu(CauTraLoi cauTraLoi) {
+    public CauTraLoi luu(@NonNull CauTraLoi cauTraLoi) {
         return cauTraLoiRepository.save(cauTraLoi);
     }
     
-    public void xoa(String id) {
+    public void xoa(@NonNull String id) {
         // Xóa tất cả bình luận con trước
         List<CauTraLoi> cacTraLoiCon = cauTraLoiRepository.findByMacautraloichaOrderByNgaytraloi(id);
         for (CauTraLoi con : cacTraLoiCon) {
-            xoa(con.getMacautraloi()); // Đệ quy xóa con của con
+            String maCon = con.getMacautraloi();
+            if (maCon != null) {
+                xoa(maCon); // Đệ quy xóa con của con
+            }
         }
         cauTraLoiRepository.deleteById(id);
     }

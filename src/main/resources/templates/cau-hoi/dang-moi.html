@@ -10,29 +10,61 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
+    <!-- Quill Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <style>
         .topic-card { border: 2px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1rem; cursor: pointer; transition: all var(--transition-fast); height: 100%; text-align: center; }
-        .topic-card:hover { border-color: var(--primary); background-color: var(--bg-elevated); }
+        .topic-card:hover { border-color: var(--primary); background-color: var(--bg-elevated); transform: translateY(-2px); }
         .topic-card.selected { border-color: var(--primary); background-color: rgba(0, 102, 255, 0.1); }
         .topic-card i { font-size: 1.5rem; color: var(--primary); }
+        /* Rich Editor Styles */
+        .ql-toolbar { border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important; border-color: var(--border-default) !important; background: var(--bg-sunken); }
+        .ql-container { border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important; border-color: var(--border-default) !important; font-size: 1rem; min-height: 200px; }
+        .ql-editor { min-height: 200px; }
+        .ql-editor.ql-blank::before { font-style: normal; color: var(--text-muted); }
+        .ql-toolbar.ql-snow .ql-picker-label { color: var(--text-secondary); }
+        .ql-snow .ql-stroke { stroke: var(--text-secondary); }
+        .ql-snow .ql-fill { fill: var(--text-secondary); }
+        .ql-snow.ql-toolbar button:hover .ql-stroke { stroke: var(--primary); }
+        .ql-snow.ql-toolbar button:hover .ql-fill { fill: var(--primary); }
+        .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--primary); }
+        .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: var(--primary); }
+        /* Dark mode support for editor */
+        [data-theme="dark"] .ql-toolbar { background: var(--bg-sunken); border-color: var(--border-default) !important; }
+        [data-theme="dark"] .ql-container { background: var(--bg-elevated); border-color: var(--border-default) !important; }
+        [data-theme="dark"] .ql-editor { color: var(--text-primary); }
+        [data-theme="dark"] .ql-snow .ql-picker-label { color: var(--text-secondary); }
+        [data-theme="dark"] .ql-snow .ql-stroke { stroke: var(--text-secondary); }
+        /* Validation styles */
+        .form-group.has-error .ql-container { border-color: var(--error) !important; }
+        .form-group.has-error .form-control { border-color: var(--error) !important; }
+        .char-count { font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 0.25rem; }
+        .char-count.warning { color: var(--warning); }
+        .char-count.error { color: var(--error); }
     </style>
+
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
-            <div class="navbar-nav ms-auto"><a class="nav-link" th:href="@{/}"><i class="bi bi-arrow-left"></i>Quay lại</a></div>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" th:href="@{/}"><i class="bi bi-arrow-left"></i>Quay lại</a>
+            </div>
         </div>
     </nav>
     <main class="py-5">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <div class="sidebar-card">
+                    <div class="sidebar-card animate-fadeIn">
                         <h3 class="sidebar-title mb-4"><i class="bi bi-plus-circle me-2 text-primary"></i>Đặt câu hỏi mới</h3>
-                        <div th:if="${error}" class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span></div>
-                        <form th:action="@{/cau-hoi/dang-moi}" method="post" enctype="multipart/form-data">
-                            <div class="mb-4">
+                        <div th:if="${error}" class="alert alert-danger animate-slideUp"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span></div>
+                        <form th:action="@{/cau-hoi/dang-moi}" method="post" enctype="multipart/form-data" id="questionForm" novalidate>
+                            <div class="form-group mb-4">
                                 <label class="form-label fw-semibold"><i class="bi bi-bookmark-star me-1"></i>Chọn chủ đề <span class="text-danger">*</span></label>
                                 <div class="row g-2">
                                     <div class="col-6 col-md-4 col-lg-3" th:each="chude : ${danhSachChuDe}">
@@ -44,24 +76,39 @@
                                 </div>
                                 <input type="hidden" name="machude" id="machude" required>
                                 <div class="form-text mt-2">Chọn chủ đề phù hợp nhất với câu hỏi của bạn.</div>
+                                <div class="invalid-feedback">Vui lòng chọn một chủ đề</div>
                             </div>
-                            <div class="mb-3">
+                            <div class="form-group mb-3">
                                 <label class="form-label fw-semibold"><i class="bi bi-chat-left-text me-1"></i>Tiêu đề câu hỏi <span class="text-danger">*</span></label>
-                                <input type="text" name="tieude" class="form-control" placeholder="Nhập tiêu đề câu hỏi của bạn..." required>
-                                <div class="form-text">Tiêu đề nên ngắn gọn, rõ ràng và mô tả được nội dung câu hỏi.</div>
+                                <div class="input-group-validation">
+                                    <input type="text" name="tieude" id="tieude" class="form-control" placeholder="Nhập tiêu đề câu hỏi của bạn..." required minlength="10" maxlength="200">
+                                    <i class="bi bi-check-circle-fill validation-icon valid"></i>
+                                    <i class="bi bi-x-circle-fill validation-icon invalid"></i>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div class="form-text">Tiêu đề nên ngắn gọn, rõ ràng và mô tả được nội dung câu hỏi (10-200 ký tự).</div>
+                                    <div class="char-count" id="tieudeCount">0/200</div>
+                                </div>
+                                <div class="invalid-feedback">Tiêu đề phải có ít nhất 10 ký tự</div>
                             </div>
-                            <div class="mb-3">
+                            <div class="form-group mb-3">
                                 <label class="form-label fw-semibold"><i class="bi bi-text-paragraph me-1"></i>Nội dung chi tiết <span class="text-danger">*</span></label>
-                                <textarea name="noidung" class="form-control" rows="8" placeholder="Mô tả chi tiết câu hỏi của bạn..." required></textarea>
-                                <div class="form-text">Hãy mô tả rõ ràng vấn đề bạn gặp phải để nhận được câu trả lời tốt nhất.</div>
+                                <!-- Quill Editor -->
+                                <div id="editor"></div>
+                                <textarea name="noidung" id="noidung" style="display:none;" required></textarea>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <div class="form-text">Hãy mô tả rõ ràng vấn đề. Hỗ trợ: <strong>B</strong> (đậm), <em>I</em> (nghiêng), code, link, list...</div>
+                                    <div class="char-count" id="noidungCount">0 ký tự</div>
+                                </div>
                             </div>
-                            <div class="mb-4">
+                            <div class="form-group mb-4">
                                 <label class="form-label fw-semibold"><i class="bi bi-paperclip me-1"></i>Đính kèm (tùy chọn)</label>
                                 <input type="file" name="files" id="files" class="form-control" multiple accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.zip,.rar">
-                                <div class="form-text">Chọn file đính kèm (hỗ trợ: PDF, Word, hình ảnh, ZIP). Tối đa 5 file.</div>
+                                <div class="form-text">Chọn file đính kèm (hỗ trợ: PDF, Word, hình ảnh, ZIP). Tối đa 5 file, mỗi file ≤ 5MB.</div>
+                                <div id="filePreview" class="mt-2 d-flex flex-wrap gap-2"></div>
                             </div>
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-cta"><i class="bi bi-send me-2"></i>Đăng câu hỏi</button>
+                                <button type="submit" class="btn btn-cta" id="submitBtn"><i class="bi bi-send me-2"></i>Đăng câu hỏi</button>
                                 <a th:href="@{/}" class="btn btn-secondary">Hủy</a>
                             </div>
                         </form>
@@ -71,14 +118,147 @@
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
     <script>
+        // Toast System
+        function showToast(type, title, message, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
+            toast.innerHTML = '<div class="toast-icon"><i class="bi ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + title + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="closeToast(this)"><i class="bi bi-x"></i></button>';
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 300); }, duration);
+        }
+        function closeToast(btn) { const toast = btn.closest('.toast'); toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 300); }
+
+        // Topic Selection
         function selectTopic(element) {
             document.querySelectorAll('.topic-card').forEach(card => card.classList.remove('selected'));
             element.classList.add('selected');
             document.getElementById('machude').value = element.dataset.machude;
+            element.closest('.form-group').classList.remove('has-error');
         }
-        document.querySelector('form').addEventListener('submit', function(e) {
-            if (!document.getElementById('machude').value) { e.preventDefault(); alert('Vui lòng chọn một chủ đề!'); }
+
+        // Initialize Quill Editor
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Mô tả chi tiết câu hỏi của bạn...\n\nBạn có thể:\n• Sử dụng **đậm**, *nghiêng* để nhấn mạnh\n• Chèn code với nút Code\n• Thêm link và danh sách',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['code-block', 'blockquote'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Update hidden textarea on editor change
+        quill.on('text-change', function() {
+            const html = quill.root.innerHTML;
+            const text = quill.getText().trim();
+            document.getElementById('noidung').value = text.length > 0 ? html : '';
+            document.getElementById('noidungCount').textContent = text.length + ' ký tự';
+        });
+
+        // Real-time validation for title
+        const tieudeInput = document.getElementById('tieude');
+        const tieudeCount = document.getElementById('tieudeCount');
+        tieudeInput.addEventListener('input', function() {
+            const len = this.value.length;
+            tieudeCount.textContent = len + '/200';
+            tieudeCount.className = 'char-count' + (len > 180 ? ' warning' : '') + (len > 200 ? ' error' : '');
+            
+            if (len >= 10 && len <= 200) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else if (len > 0) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+
+        // File preview
+        document.getElementById('files').addEventListener('change', function() {
+            const preview = document.getElementById('filePreview');
+            preview.innerHTML = '';
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            Array.from(this.files).forEach((file, i) => {
+                if (i >= 5) {
+                    showToast('warning', 'Cảnh báo', 'Chỉ được chọn tối đa 5 file');
+                    return;
+                }
+                if (file.size > maxSize) {
+                    showToast('error', 'Lỗi', 'File ' + file.name + ' vượt quá 5MB');
+                    return;
+                }
+                
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-light text-dark border d-flex align-items-center gap-2';
+                badge.innerHTML = '<i class="bi bi-file-earmark"></i>' + file.name + '<button type="button" class="btn-close btn-close-sm" onclick="removeFile(' + i + ')"></button>';
+                preview.appendChild(badge);
+            });
+        });
+
+        // Form validation
+        document.getElementById('questionForm').addEventListener('submit', function(e) {
+            let valid = true;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // IMPORTANT: Sync Quill content to hidden textarea BEFORE validation
+            const html = quill.root.innerHTML;
+            const text = quill.getText().trim();
+            
+            // Kiểm tra nếu chỉ có <p><br></p> thì coi như trống
+            const cleanHtml = html.replace(/<p><br><\/p>/g, '').trim();
+            document.getElementById('noidung').value = (text.length > 0 && cleanHtml.length > 0) ? html : '';
+            
+            // Debug log
+            console.log('=== DEBUG SUBMIT ===');
+            console.log('text:', text);
+            console.log('text.length:', text.length);
+            console.log('html:', html);
+            console.log('cleanHtml:', cleanHtml);
+            console.log('noidung value:', document.getElementById('noidung').value);
+            console.log('====================');
+            
+            // Check topic
+            if (!document.getElementById('machude').value) {
+                document.querySelector('.form-group').classList.add('has-error');
+                showToast('error', 'Lỗi', 'Vui lòng chọn một chủ đề!');
+                valid = false;
+            }
+            
+            // Check title
+            const tieude = tieudeInput.value.trim();
+            if (tieude.length < 10) {
+                tieudeInput.classList.add('is-invalid');
+                showToast('error', 'Lỗi', 'Tiêu đề phải có ít nhất 10 ký tự!');
+                valid = false;
+            }
+            
+            // Check content - kiểm tra nội dung đã được set chưa
+            const noidungValue = document.getElementById('noidung').value;
+            if (text.length < 20 || noidungValue.length === 0) {
+                document.querySelector('#editor').closest('.form-group').classList.add('has-error');
+                showToast('error', 'Lỗi', 'Nội dung phải có ít nhất 20 ký tự!');
+                valid = false;
+            }
+            
+            if (!valid) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.classList.add('btn-loading');
+            submitBtn.disabled = true;
         });
     </script>
 </body>

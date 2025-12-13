@@ -27,6 +27,7 @@ import java.util.UUID;
 @Controller
 @RequestMapping("/cau-hoi")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CauHoiController {
     
     private final CauHoiService cauHoiService;
@@ -39,7 +40,7 @@ public class CauHoiController {
     private String uploadPath;
     
     @GetMapping("/{id}")
-    public String xemChiTiet(@PathVariable String id, Model model, HttpSession session) {
+    public String xemChiTiet(@PathVariable String id, Model model, HttpSession session, Authentication authentication) {
         Optional<CauHoi> cauHoiOpt = cauHoiService.timTheoId(id);
         
         if (cauHoiOpt.isEmpty()) {
@@ -68,6 +69,20 @@ public class CauHoiController {
         // Sử dụng cấu trúc cây cho bình luận lồng nhau
         model.addAttribute("cauTraLois", cauTraLoiService.timTheoCauHoiDangCay(id));
         
+        // Kiểm tra quyền sửa/xóa
+        boolean isOwner = false;
+        boolean isAdmin = false;
+        boolean isLoggedIn = authentication != null;
+        if (authentication != null) {
+            String currentUserId = authentication.getName();
+            isOwner = currentUserId.equals(cauHoi.getManguoidung());
+            isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        }
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("isLoggedIn", isLoggedIn);
+        
         return "cau-hoi/chi-tiet";
     }
     
@@ -83,7 +98,7 @@ public class CauHoiController {
     @PostMapping("/dang-moi")
     public String dangCauHoi(
             @RequestParam String tieude,
-            @RequestParam String noidung,
+            @RequestParam(required = false) String noidung,
             @RequestParam(required = false) List<MultipartFile> files,
             @RequestParam String machude,
             Authentication authentication,
@@ -108,6 +123,13 @@ public class CauHoiController {
         }
         ChuDeEntity chuDeEntity = chuDeOpt.get();
         
+        // Debug log để kiểm tra nội dung
+        System.out.println("=== DEBUG: Nội dung câu hỏi ===");
+        System.out.println("Tiêu đề: " + tieude);
+        System.out.println("Nội dung: " + noidung);
+        System.out.println("Nội dung length: " + (noidung != null ? noidung.length() : "null"));
+        System.out.println("==============================");
+        
         CauHoi cauHoi = new CauHoi();
         cauHoi.setTieude(tieude);
         cauHoi.setNoidung(noidung);
@@ -115,7 +137,7 @@ public class CauHoiController {
         cauHoi.setTennguoidung(nguoiDung.getHoten());
         cauHoi.setNgaydang(LocalDateTime.now());
         cauHoi.setNgaycapnhat(LocalDateTime.now());
-        cauHoi.setDaduocduyet(false);
+        cauHoi.setDaduocduyet(true); // Tự động duyệt câu hỏi
         
         // Xử lý upload file
         List<String> dinhkemList = new ArrayList<>();

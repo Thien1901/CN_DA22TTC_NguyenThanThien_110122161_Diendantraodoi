@@ -4,26 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${cauHoi.tieude + ' - Diễn đàn CNTT'}">Chi tiết câu hỏi</title>
+    <!-- SEO and Social Meta -->
+    <meta name="description" th:content="${cauHoi.noidung != null ? #strings.abbreviate(cauHoi.noidung, 160) : cauHoi.tieude}">
+    <meta property="og:title" th:content="${cauHoi.tieude}">
+    <meta property="og:description" th:content="${cauHoi.noidung != null ? #strings.abbreviate(cauHoi.noidung, 160) : cauHoi.tieude}">
+    <meta property="og:type" content="article">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
+    <!-- Quill Editor CSS for rich text replies -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <style>
         /* Nested Comments Styles */
-        .comment-item { background: var(--bg-card); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--accent); }
+        .comment-item { background: var(--bg-card); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--accent); transition: all var(--transition-fast); }
+        .comment-item:hover { box-shadow: var(--shadow-md); }
         .comment-item .reply-form { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-200); }
-        .comment-item .reply-form.show { display: block; }
+        .comment-item .reply-form.show { display: block; animation: slideDown 0.3s ease; }
         .comment-replies { margin-left: 2rem; margin-top: 1rem; padding-left: 1rem; border-left: 2px solid var(--gray-200); }
         .comment-replies .comment-item { border-left-color: var(--primary); background: var(--bg-elevated); }
-        .btn-reply { font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; }
+        .btn-reply { font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; transition: color var(--transition-fast); }
         .btn-reply:hover { color: var(--primary); }
         .mention-tag { background: rgba(0, 102, 255, 0.1); color: var(--primary); padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 500; }
         @media (max-width: 768px) { .comment-replies { margin-left: 1rem; } }
+        
+        /* Question Actions Bar */
+        .question-actions { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--border-subtle); margin-top: 1.5rem; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius-full); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-secondary); }
+        .action-btn:hover { background: var(--bg-sunken); color: var(--text-primary); transform: translateY(-1px); }
+        .action-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .action-btn i { font-size: 1rem; }
+        
+        /* Voting */
+        .vote-section { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding-right: 1.5rem; margin-right: 1.5rem; border-right: 1px solid var(--border-subtle); }
+        .vote-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--text-muted); cursor: pointer; transition: all var(--transition-fast); }
+        .vote-btn:hover { background: var(--bg-sunken); }
+        .vote-btn.upvoted { background: var(--success); color: white; border-color: var(--success); }
+        .vote-btn.downvoted { background: var(--error); color: white; border-color: var(--error); }
+        .vote-count { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
+        
+        /* Share Modal */
+        .share-modal .modal-content { border-radius: var(--radius-xl); }
+        .share-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.5rem 0; }
+        .share-option { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border-radius: var(--radius-lg); cursor: pointer; transition: all var(--transition-fast); border: 1px solid var(--border-subtle); }
+        .share-option:hover { background: var(--bg-elevated); transform: translateY(-2px); }
+        .share-option i { font-size: 1.5rem; }
+        .share-option.facebook { color: #1877F2; }
+        .share-option.twitter { color: #1DA1F2; }
+        .share-option.linkedin { color: #0A66C2; }
+        .share-option.copy { color: var(--primary); }
+        .share-url-box { display: flex; gap: 0.5rem; padding: 0.75rem; background: var(--bg-sunken); border-radius: var(--radius-lg); }
+        .share-url-box input { flex: 1; border: none; background: none; color: var(--text-primary); font-size: 0.875rem; }
+        
+        /* Bookmark button */
+        .bookmark-btn.bookmarked { color: var(--warning); }
+        .bookmark-btn.bookmarked i::before { content: "\f588"; }
+        
+        /* Answer Editor */
+        .answer-editor .ql-toolbar { border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important; border-color: var(--border-default) !important; background: var(--bg-sunken); }
+        .answer-editor .ql-container { border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important; border-color: var(--border-default) !important; min-height: 150px; }
+        .answer-editor .ql-editor { min-height: 150px; }
+        [data-theme="dark"] .answer-editor .ql-toolbar { background: var(--bg-sunken); border-color: var(--border-default) !important; }
+        [data-theme="dark"] .answer-editor .ql-container { background: var(--bg-elevated); border-color: var(--border-default) !important; }
+        [data-theme="dark"] .answer-editor .ql-editor { color: var(--text-primary); }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Share Modal -->
+    <div class="modal fade share-modal" id="shareModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title"><i class="bi bi-share me-2"></i>Chia sẻ câu hỏi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="share-options">
+                        <div class="share-option facebook" onclick="shareToSocial('facebook')">
+                            <i class="bi bi-facebook"></i>
+                            <span>Facebook</span>
+                        </div>
+                        <div class="share-option twitter" onclick="shareToSocial('twitter')">
+                            <i class="bi bi-twitter-x"></i>
+                            <span>Twitter</span>
+                        </div>
+                        <div class="share-option linkedin" onclick="shareToSocial('linkedin')">
+                            <i class="bi bi-linkedin"></i>
+                            <span>LinkedIn</span>
+                        </div>
+                        <div class="share-option copy" onclick="copyShareUrl()">
+                            <i class="bi bi-link-45deg"></i>
+                            <span>Sao chép</span>
+                        </div>
+                    </div>
+                    <div class="share-url-box">
+                        <input type="text" id="shareUrl" readonly>
+                        <button class="btn btn-primary btn-sm" onclick="copyShareUrl()"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
@@ -43,7 +132,7 @@
                 <form class="d-none d-lg-flex me-3" th:action="@{/tim-kiem}" method="get" autocomplete="off">
                     <div class="search-box"><i class="bi bi-search"></i><input class="form-control" type="search" name="q" placeholder="Tìm kiếm câu hỏi..."></div>
                 </form>
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-center">
                     <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin}"><i class="bi bi-shield-lock"></i>Quản trị</a></li>
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="notificationDropdown"><i class="bi bi-bell"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-count" style="display:none">0</span></a>
@@ -76,34 +165,66 @@
             <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
             <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 
-            <div class="question-card mb-4">
-                <div class="mb-3"><a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a></div>
-                <h1 class="question-title mb-3" th:text="${cauHoi.tieude}">Tiêu đề câu hỏi</h1>
-                <div class="question-meta mb-4">
-                    <span><i class="bi bi-person"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span>
-                    <span><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
-                    <span><i class="bi bi-eye"></i><th:block th:text="${cauHoi.luotxem}">0</th:block></span>
-                    <span><i class="bi bi-chat"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block></span>
-                </div>
-                <hr>
-                <div class="question-content" th:utext="${cauHoi.noidung}">Nội dung câu hỏi</div>
-                
-                <div th:if="${cauHoi.dinhkem != null && !cauHoi.dinhkem.isEmpty()}" class="mt-4">
-                    <h6 class="text-secondary"><i class="bi bi-paperclip me-1"></i>Đính kèm:</h6>
-                    <div th:each="file : ${cauHoi.dinhkem}" class="mb-3">
-                        <a th:href="@{${file}}" target="_blank"><img th:src="@{${file}}" class="img-fluid rounded" style="max-width:100%;" alt="Ảnh đính kèm"></a>
+            <div class="question-card mb-4 animate-fadeIn">
+                <div class="d-flex">
+                    <!-- Voting Section -->
+                    <div class="vote-section d-none d-md-flex" th:if="${isLoggedIn}">
+                        <button class="vote-btn" id="upvoteBtn" onclick="vote('up')" data-tooltip="Hữu ích">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                        </button>
+                        <span class="vote-count" id="voteCount" th:text="${cauHoi.luotthich != null ? cauHoi.luotthich : 0}">0</span>
+                        <button class="vote-btn" id="downvoteBtn" onclick="vote('down')" data-tooltip="Không hữu ích">
+                            <i class="bi bi-hand-thumbs-down"></i>
+                        </button>
                     </div>
-                </div>
-                
-                <div class="mt-4" sec:authorize="isAuthenticated()">
-                    <th:block th:if="${#authentication.name == cauHoi.manguoidung}" sec:authorize="hasRole('ADMIN') or isAuthenticated()">
-                        <a th:href="@{/cau-hoi/{id}/sua(id=${cauHoi.id})}" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-pencil me-1"></i>Sửa</a>
-                        <form th:action="@{/cau-hoi/{id}/xoa(id=${cauHoi.id})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa câu hỏi này?')"><button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Xóa</button></form>
-                    </th:block>
-                    <th:block sec:authorize="hasRole('ADMIN')">
-                        <a th:if="${#authentication.name != cauHoi.manguoidung}" th:href="@{/cau-hoi/{id}/sua(id=${cauHoi.id})}" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-pencil me-1"></i>Sửa</a>
-                        <form th:if="${#authentication.name != cauHoi.manguoidung}" th:action="@{/cau-hoi/{id}/xoa(id=${cauHoi.id})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa câu hỏi này?')"><button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Xóa</button></form>
-                    </th:block>
+                    
+                    <div class="flex-grow-1">
+                        <div class="mb-3"><a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a></div>
+                        <h1 class="question-title mb-3" th:text="${cauHoi.tieude}">Tiêu đề câu hỏi</h1>
+                        <div class="question-meta mb-4">
+                            <span><i class="bi bi-person"></i><a th:href="@{/ho-so/{id}(id=${cauHoi.manguoidung})}" class="text-decoration-none" th:text="${cauHoi.tennguoidung}">Tác giả</a></span>
+                            <span th:if="${cauHoi.ngaydang != null}"><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
+                            <span><i class="bi bi-eye"></i><th:block th:text="${cauHoi.luotxem != null ? cauHoi.luotxem : 0}">0</th:block> lượt xem</span>
+                            <span><i class="bi bi-chat"></i><th:block th:text="${cauHoi.soluongbinhluan != null ? cauHoi.soluongbinhluan : 0}">0</th:block> câu trả lời</span>
+                        </div>
+                        <hr>
+                        <div class="question-content" th:utext="${cauHoi.noidung != null ? cauHoi.noidung : 'Không có nội dung'}">Nội dung câu hỏi</div>
+                        
+                        <div th:if="${cauHoi.dinhkem != null && !cauHoi.dinhkem.isEmpty()}" class="mt-4">
+                            <h6 class="text-secondary"><i class="bi bi-paperclip me-1"></i>Đính kèm:</h6>
+                            <div th:each="file : ${cauHoi.dinhkem}" class="mb-3">
+                                <a th:href="@{${file}}" target="_blank" class="d-inline-block"><img th:src="@{${file}}" class="img-fluid rounded" style="max-width:100%;max-height:400px;" alt="Ảnh đính kèm"></a>
+                            </div>
+                        </div>
+                        
+                        <!-- Question Actions Bar -->
+                        <div class="question-actions">
+                            <!-- Mobile Voting -->
+                            <div class="d-flex align-items-center gap-2 d-md-none" th:if="${isLoggedIn}">
+                                <button class="action-btn" id="upvoteBtnMobile" onclick="vote('up')"><i class="bi bi-hand-thumbs-up"></i><span id="voteCountMobile" th:text="${cauHoi.luotthich != null ? cauHoi.luotthich : 0}">0</span></button>
+                                <button class="action-btn" id="downvoteBtnMobile" onclick="vote('down')"><i class="bi bi-hand-thumbs-down"></i></button>
+                            </div>
+                            
+                            <!-- Share Button -->
+                            <button class="action-btn" onclick="openShareModal()"><i class="bi bi-share"></i><span class="d-none d-sm-inline">Chia sẻ</span></button>
+                            
+                            <!-- Bookmark Button -->
+                            <button class="action-btn bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()" th:if="${isLoggedIn}"><i class="bi bi-bookmark"></i><span class="d-none d-sm-inline">Lưu</span></button>
+                            
+                            <!-- Report Button -->
+                            <button class="action-btn" onclick="reportQuestion()" th:if="${isLoggedIn}"><i class="bi bi-flag"></i><span class="d-none d-sm-inline">Báo cáo</span></button>
+                            
+                            <div class="ms-auto d-flex gap-2">
+                                <!-- Edit/Delete for Owner or Admin -->
+                                <th:block th:if="${isOwner or isAdmin}">
+                                    <a th:href="@{/cau-hoi/{id}/sua(id=${cauHoi.id})}" class="action-btn"><i class="bi bi-pencil"></i><span class="d-none d-sm-inline">Sửa</span></a>
+                                    <form th:action="@{/cau-hoi/{id}/xoa(id=${cauHoi.id})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa câu hỏi này?')">
+                                        <button type="submit" class="action-btn" style="color: var(--error);"><i class="bi bi-trash"></i><span class="d-none d-sm-inline">Xóa</span></button>
+                                    </form>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -122,20 +243,20 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <strong th:text="${traloi.tennguoidung}">Người trả lời</strong>
-                                        <small class="text-secondary ms-2" th:text="${#temporals.format(traloi.ngaytraloi, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
+                                        <small class="text-secondary ms-2" th:if="${traloi.ngaytraloi != null}" th:text="${#temporals.format(traloi.ngaytraloi, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
                                     </div>
                                 </div>
                                 <p class="mt-2 mb-2" th:text="${traloi.noidung}">Nội dung trả lời</p>
                                 
                                 <!-- Reply button (only for logged-in users) -->
-                                <div class="d-flex gap-3" sec:authorize="isAuthenticated()">
+                                <div class="d-flex gap-3" th:if="${isLoggedIn}">
                                     <span class="btn-reply" th:data-id="${traloi.macautraloi}" onclick="toggleReplyForm(this.getAttribute('data-id'))">
                                         <i class="bi bi-reply me-1"></i>Trả lời
                                     </span>
                                 </div>
                                 
                                 <!-- Reply Form (hidden by default) -->
-                                <div class="reply-form" th:id="'reply-form-' + ${traloi.macautraloi}" sec:authorize="isAuthenticated()">
+                                <div class="reply-form" th:id="'reply-form-' + ${traloi.macautraloi}" th:if="${isLoggedIn}">
                                     <form th:action="@{/cau-hoi/{cauhoiId}/tra-loi/{traloiId}/phan-hoi(cauhoiId=${cauHoi.id}, traloiId=${traloi.macautraloi})}" method="post">
                                         <div class="mb-2">
                                             <textarea name="noidung" class="form-control" rows="2" th:placeholder="'Trả lời ' + ${traloi.tennguoidung} + '...'" required></textarea>
@@ -165,20 +286,20 @@
                                                         <i class="bi bi-arrow-right-short"></i>
                                                         <span class="mention-tag" th:text="'@' + ${traloiCon.tenNguoiDuocTraLoi}">@người được reply</span>
                                                     </span>
-                                                    <small class="text-secondary ms-2" th:text="${#temporals.format(traloiCon.ngaytraloi, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
+                                                    <small class="text-secondary ms-2" th:if="${traloiCon.ngaytraloi != null}" th:text="${#temporals.format(traloiCon.ngaytraloi, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
                                                 </div>
                                             </div>
                                             <p class="mt-2 mb-2" th:text="${traloiCon.noidung}">Nội dung trả lời</p>
                                             
                                             <!-- Reply button for nested comments -->
-                                            <div class="d-flex gap-3" sec:authorize="isAuthenticated()">
+                                            <div class="d-flex gap-3" th:if="${isLoggedIn}">
                                                 <span class="btn-reply" th:data-id="${traloiCon.macautraloi}" onclick="toggleReplyForm(this.getAttribute('data-id'))">
                                                     <i class="bi bi-reply me-1"></i>Trả lời
                                                 </span>
                                             </div>
                                             
                                             <!-- Reply Form for nested comments -->
-                                            <div class="reply-form" th:id="'reply-form-' + ${traloiCon.macautraloi}" sec:authorize="isAuthenticated()">
+                                            <div class="reply-form" th:id="'reply-form-' + ${traloiCon.macautraloi}" th:if="${isLoggedIn}">
                                                 <form th:action="@{/cau-hoi/{cauhoiId}/tra-loi/{traloiId}/phan-hoi(cauhoiId=${cauHoi.id}, traloiId=${traloiCon.macautraloi})}" method="post">
                                                     <div class="mb-2">
                                                         <textarea name="noidung" class="form-control" rows="2" th:placeholder="'Trả lời ' + ${traloiCon.tennguoidung} + '...'" required></textarea>
@@ -201,14 +322,20 @@
             <!-- Empty State -->
             <div th:if="${cauTraLois == null || cauTraLois.isEmpty()}" class="text-center py-5"><i class="bi bi-chat display-1 text-muted"></i><p class="text-muted mt-3">Chưa có câu trả lời nào. Hãy là người đầu tiên!</p></div>
 
-            <div class="sidebar-card mt-4" sec:authorize="isAuthenticated()">
+            <div class="sidebar-card mt-4 animate-fadeIn" th:if="${isLoggedIn}">
                 <h5 class="sidebar-title"><i class="bi bi-reply me-2"></i>Viết câu trả lời</h5>
-                <form th:action="@{/cau-hoi/{id}/tra-loi(id=${cauHoi.id})}" method="post">
-                    <div class="mb-3"><textarea name="noidung" class="form-control" rows="4" placeholder="Nhập câu trả lời của bạn..." required></textarea></div>
-                    <button type="submit" class="btn btn-cta"><i class="bi bi-send me-2"></i>Gửi trả lời</button>
+                <form th:action="@{/cau-hoi/{id}/tra-loi(id=${cauHoi.id})}" method="post" id="answerForm">
+                    <div class="mb-3 answer-editor">
+                        <div id="answerEditor"></div>
+                        <textarea name="noidung" id="answerContent" style="display:none;" required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Hỗ trợ định dạng: <strong>đậm</strong>, <em>nghiêng</em>, code, link...</small>
+                        <button type="submit" class="btn btn-cta" id="submitAnswerBtn"><i class="bi bi-send me-2"></i>Gửi trả lời</button>
+                    </div>
                 </form>
             </div>
-            <div class="sidebar-card mt-4 text-center" sec:authorize="!isAuthenticated()">
+            <div class="sidebar-card mt-4 text-center" th:if="${!isLoggedIn}">
                 <p class="text-secondary mb-2">Vui lòng đăng nhập để trả lời câu hỏi</p>
                 <a th:href="@{/dang-nhap}" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập</a>
             </div>
@@ -216,7 +343,20 @@
     </main>
     <footer class="footer"><div class="container"><div class="row g-4"><div class="col-lg-5"><h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5><p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p></div><div class="col-lg-3"><h6>Liên kết nhanh</h6><ul class="list-unstyled"><li><a th:href="@{/}">Trang chủ</a></li><li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li></ul></div><div class="col-lg-4"><h6>Thông tin dự án</h6><ul class="list-unstyled"><li>SV: Nguyễn Thanh Thiên</li><li>MSSV: 110122161</li><li>Lớp: DA22TTC</li></ul></div></div><hr><p class="text-center mb-0">© 2025 Diễn đàn CNTT</p></div></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script th:inline="javascript">
+    // Toast System
+    function showToast(type, title, message, duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
+        toast.innerHTML = '<div class="toast-icon"><i class="bi ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + title + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="closeToast(this)"><i class="bi bi-x"></i></button>';
+        container.appendChild(toast);
+        setTimeout(() => { toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 300); }, duration);
+    }
+    function closeToast(btn) { const toast = btn.closest('.toast'); toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 300); }
+
     // Toggle reply form visibility
     function toggleReplyForm(commentId) {
         const form = document.getElementById('reply-form-' + commentId);
@@ -226,6 +366,133 @@
                 form.querySelector('textarea').focus();
             }
         }
+    }
+    
+    // Voting System
+    const questionId = /*[[${cauHoi.id}]]*/ '';
+    let currentVote = null;
+    
+    function vote(type) {
+        fetch('/cau-hoi/' + questionId + '/vote?type=' + type, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('voteCount').textContent = data.voteCount;
+                    const mobileCount = document.getElementById('voteCountMobile');
+                    if (mobileCount) mobileCount.textContent = data.voteCount;
+                    
+                    // Update button states
+                    const upBtn = document.getElementById('upvoteBtn');
+                    const downBtn = document.getElementById('downvoteBtn');
+                    const upBtnMobile = document.getElementById('upvoteBtnMobile');
+                    const downBtnMobile = document.getElementById('downvoteBtnMobile');
+                    
+                    [upBtn, upBtnMobile].forEach(btn => {
+                        if (btn) btn.classList.toggle('upvoted', data.userVote === 'up');
+                    });
+                    [downBtn, downBtnMobile].forEach(btn => {
+                        if (btn) btn.classList.toggle('downvoted', data.userVote === 'down');
+                    });
+                    
+                    showToast('success', 'Thành công', type === 'up' ? 'Đã thích câu hỏi' : 'Đã bỏ thích câu hỏi');
+                } else {
+                    showToast('error', 'Lỗi', data.message || 'Không thể thực hiện');
+                }
+            })
+            .catch(() => {
+                showToast('error', 'Lỗi', 'Vui lòng đăng nhập để vote');
+            });
+    }
+    
+    // Share Modal
+    function openShareModal() {
+        document.getElementById('shareUrl').value = window.location.href;
+        new bootstrap.Modal(document.getElementById('shareModal')).show();
+    }
+    
+    function shareToSocial(platform) {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent(document.title);
+        let shareUrl = '';
+        
+        switch(platform) {
+            case 'facebook':
+                shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + url;
+                break;
+            case 'twitter':
+                shareUrl = 'https://twitter.com/intent/tweet?url=' + url + '&text=' + title;
+                break;
+            case 'linkedin':
+                shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
+                break;
+        }
+        
+        if (shareUrl) {
+            window.open(shareUrl, '_blank', 'width=600,height=400');
+        }
+        bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
+    }
+    
+    function copyShareUrl() {
+        const url = document.getElementById('shareUrl');
+        url.select();
+        navigator.clipboard.writeText(url.value).then(() => {
+            showToast('success', 'Đã sao chép', 'Link đã được sao chép vào clipboard');
+            bootstrap.Modal.getInstance(document.getElementById('shareModal'))?.hide();
+        });
+    }
+    
+    // Bookmark
+    let isBookmarked = false;
+    function toggleBookmark() {
+        isBookmarked = !isBookmarked;
+        const btn = document.getElementById('bookmarkBtn');
+        if (btn) {
+            btn.classList.toggle('bookmarked', isBookmarked);
+            btn.querySelector('i').className = isBookmarked ? 'bi bi-bookmark-fill' : 'bi bi-bookmark';
+        }
+        showToast('success', isBookmarked ? 'Đã lưu' : 'Đã bỏ lưu', isBookmarked ? 'Câu hỏi đã được lưu vào danh sách của bạn' : 'Đã xóa khỏi danh sách lưu');
+    }
+    
+    // Report
+    function reportQuestion() {
+        if (confirm('Bạn có muốn báo cáo câu hỏi này vi phạm quy định?')) {
+            showToast('info', 'Đã gửi báo cáo', 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét sớm nhất.');
+        }
+    }
+    
+    // Initialize Quill Editor for Answer
+    const answerEditorEl = document.getElementById('answerEditor');
+    if (answerEditorEl) {
+        const answerQuill = new Quill('#answerEditor', {
+            theme: 'snow',
+            placeholder: 'Nhập câu trả lời của bạn...',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    ['code-block', 'blockquote'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean']
+                ]
+            }
+        });
+        
+        answerQuill.on('text-change', function() {
+            const html = answerQuill.root.innerHTML;
+            const text = answerQuill.getText().trim();
+            document.getElementById('answerContent').value = text.length > 0 ? html : '';
+        });
+        
+        document.getElementById('answerForm')?.addEventListener('submit', function(e) {
+            const content = answerQuill.getText().trim();
+            if (content.length < 10) {
+                e.preventDefault();
+                showToast('error', 'Lỗi', 'Câu trả lời phải có ít nhất 10 ký tự');
+                return;
+            }
+            document.getElementById('submitAnswerBtn').classList.add('btn-loading');
+        });
     }
     
     // Notification scripts

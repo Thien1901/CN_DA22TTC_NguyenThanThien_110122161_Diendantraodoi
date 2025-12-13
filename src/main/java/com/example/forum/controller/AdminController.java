@@ -14,6 +14,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class AdminController {
     
     private final NguoiDungService nguoiDungService;
@@ -27,6 +28,14 @@ public class AdminController {
         model.addAttribute("cauHoiChoDuyet", cauHoiService.demChoDuyet());
         model.addAttribute("tongCauHoi", cauHoiService.dem());
         model.addAttribute("cauHoiMoiNhat", cauHoiService.layMoiNhat(10));
+        model.addAttribute("tongLuotXem", cauHoiService.tinhTongLuotXem());
+        
+        // Lấy hoạt động gần đây (5 câu hỏi mới nhất)
+        model.addAttribute("hoatDongGanDay", cauHoiService.layMoiNhat(5));
+        
+        // Lấy danh sách người dùng mới đăng ký
+        model.addAttribute("nguoiDungMoi", nguoiDungService.layMoiNhat(3));
+        
         return "admin/dashboard";
     }
     

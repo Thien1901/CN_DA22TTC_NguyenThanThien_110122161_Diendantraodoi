@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CauHoiService {
     
     private final CauHoiRepository cauHoiRepository;
@@ -40,7 +42,7 @@ public class CauHoiService {
         return cauHoiRepository.findTop10ByDaduocduyetOrderByLuotxemDesc(true);
     }
     
-    public Optional<CauHoi> timTheoId(String id) {
+    public Optional<CauHoi> timTheoId(@NonNull String id) {
         return cauHoiRepository.findById(id);
     }
     
@@ -64,7 +66,7 @@ public class CauHoiService {
         return cauHoiRepository.save(cauHoi);
     }
     
-    public void tangLuotXem(String id) {
+    public void tangLuotXem(@NonNull String id) {
         Optional<CauHoi> cauHoiOpt = cauHoiRepository.findById(id);
         cauHoiOpt.ifPresent(cauHoi -> {
             cauHoi.setLuotxem(cauHoi.getLuotxem() + 1);
@@ -72,7 +74,7 @@ public class CauHoiService {
         });
     }
     
-    public void capNhatSoBinhLuan(String id, int soLuong) {
+    public void capNhatSoBinhLuan(@NonNull String id, int soLuong) {
         Optional<CauHoi> cauHoiOpt = cauHoiRepository.findById(id);
         cauHoiOpt.ifPresent(cauHoi -> {
             cauHoi.setSoluongbinhluan(soLuong);
@@ -80,7 +82,7 @@ public class CauHoiService {
         });
     }
     
-    public void duyetCauHoi(String id) {
+    public void duyetCauHoi(@NonNull String id) {
         Optional<CauHoi> cauHoiOpt = cauHoiRepository.findById(id);
         cauHoiOpt.ifPresent(cauHoi -> {
             cauHoi.setDaduocduyet(true);
@@ -88,7 +90,7 @@ public class CauHoiService {
         });
     }
     
-    public void xoa(String id) {
+    public void xoa(@NonNull String id) {
         cauHoiRepository.deleteById(id);
     }
     
@@ -108,5 +110,11 @@ public class CauHoiService {
     
     public long demTheoChuDe(String machude) {
         return cauHoiRepository.countByChuDe(machude);
+    }
+    
+    // Tính tổng lượt xem của tất cả câu hỏi
+    public long tinhTongLuotXem() {
+        List<CauHoi> allCauHoi = cauHoiRepository.findAll();
+        return allCauHoi.stream().mapToLong(CauHoi::getLuotxem).sum();
     }
 }

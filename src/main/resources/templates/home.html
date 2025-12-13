@@ -12,10 +12,16 @@
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Bỏ qua đến nội dung chính</a>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="bi bi-list"></i></button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link active" th:href="@{/}"><i class="bi bi-house"></i>Trang chủ</a></li>
@@ -29,12 +35,12 @@
                     </li>
                 </ul>
                 <form class="d-none d-lg-flex me-3" th:action="@{/tim-kiem}" method="get" id="searchForm" autocomplete="off">
-                    <div class="search-box"><i class="bi bi-search"></i><input class="form-control" type="search" name="q" id="searchInput" placeholder="Tìm kiếm câu hỏi..."><div class="search-suggestions" id="searchSuggestions"></div></div>
+                    <div class="search-box"><i class="bi bi-search"></i><input class="form-control" type="search" name="q" id="searchInput" placeholder="Tìm kiếm câu hỏi..." aria-label="Tìm kiếm"><div class="search-suggestions" id="searchSuggestions"></div></div>
                 </form>
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-center">
                     <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin}"><i class="bi bi-shield-lock"></i>Quản trị</a></li>
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="notificationDropdown"><i class="bi bi-bell"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-count" style="display:none;font-size:0.65rem">0</span></a>
+                        <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="notificationDropdown" aria-label="Thông báo"><i class="bi bi-bell"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-count" style="display:none;font-size:0.65rem">0</span></a>
                         <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0">
                             <div class="notification-header"><div class="d-flex justify-content-between align-items-center"><h6 class="mb-0 fw-semibold"><i class="bi bi-bell me-2"></i>Thông báo</h6><a href="#" class="text-primary small" onclick="markAllAsRead(event)">Đọc hết</a></div><div class="d-flex gap-2 mt-3"><button class="btn btn-sm btn-primary tab-btn active" onclick="filterNotifications('all',this)">Tất cả</button><button class="btn btn-sm btn-secondary tab-btn" onclick="filterNotifications('unread',this)">Chưa đọc</button></div></div>
                             <div id="notification-list" style="max-height:350px;overflow-y:auto"><div class="empty-notification"><i class="bi bi-inbox"></i><p>Chưa có thông báo nào</p></div></div>
@@ -44,47 +50,160 @@
                     <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right"></i>Đăng nhập</a></li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()"><a class="btn btn-primary ms-2" th:href="@{/dang-ky}"><i class="bi bi-person-plus"></i>Đăng ký</a></li>
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown"><img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm me-2" alt="Avatar"><span sec:authentication="name">User</span></a>
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown"><img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm me-2" alt="Ảnh đại diện người dùng"><span sec:authentication="name">User</span></a>
                         <ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person"></i>Hồ sơ cá nhân</a></li><li><a class="dropdown-item" th:href="@{/ho-so/cau-hoi-cua-toi}"><i class="bi bi-question-circle"></i>Câu hỏi của tôi</a></li><li><hr class="dropdown-divider"></li><li><form th:action="@{/dang-xuat}" method="post" class="m-0"><button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button></form></li></ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-    <main class="py-5">
+    
+    <main class="py-5" id="main-content">
         <div class="container">
-            <div class="hero-section text-center mb-5"><h1 class="fw-bold mb-3"><i class="bi bi-mortarboard-fill me-2"></i>Diễn đàn Trao đổi Kiến thức CNTT</h1><p class="lead opacity-85 mb-0">Nền tảng chia sẻ kiến thức, thảo luận học thuật dành cho sinh viên và giảng viên</p></div>
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            <div class="hero-section text-center mb-5 animate-fadeIn"><h1 class="fw-bold mb-3"><i class="bi bi-mortarboard-fill me-2"></i>Diễn đàn Trao đổi Kiến thức CNTT</h1><p class="lead opacity-85 mb-0">Nền tảng chia sẻ kiến thức, thảo luận học thuật dành cho sinh viên và giảng viên</p></div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show animate-slideUp"><i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show animate-slideUp"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
             <div class="row g-4">
                 <div class="col-lg-8">
-                    <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-semibold mb-0"><i class="bi bi-chat-left-text text-primary me-2"></i>Câu hỏi mới nhất</h4><a th:href="@{/tat-ca-cau-hoi}" class="btn btn-light"><i class="bi bi-collection me-1"></i>Xem tất cả</a></div>
-                    <div th:if="${cauHois != null && !cauHois.isEmpty()}">
-                        <div th:each="cauHoi : ${cauHois}" class="question-card">
-                            <div class="d-flex gap-3"><div class="flex-grow-1"><a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title d-block mb-2"><th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block></a><p class="text-secondary small mb-3" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p><div class="question-meta"><span><i class="bi bi-person"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span><span><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span><span><i class="bi bi-eye"></i><th:block th:text="${cauHoi.luotxem}">0</th:block></span><span><i class="bi bi-chat"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block></span></div></div><div class="flex-shrink-0"><span class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span></div></div>
+                    <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-semibold mb-0"><i class="bi bi-chat-left-text text-primary me-2"></i>Câu hỏi mới nhất</h4><a th:href="@{/tat-ca-cau-hoi}" class="btn btn-light hover-lift"><i class="bi bi-collection me-1"></i>Xem tất cả</a></div>
+                    
+                    <!-- Loading Skeleton -->
+                    <div id="questionsLoading" style="display:none;">
+                        <div class="skeleton-card" th:each="i : ${#numbers.sequence(1, 3)}">
+                            <div class="d-flex gap-3">
+                                <div class="flex-grow-1">
+                                    <div class="skeleton skeleton-title"></div>
+                                    <div class="skeleton skeleton-text"></div>
+                                    <div class="skeleton skeleton-text"></div>
+                                    <div class="d-flex gap-3 mt-3">
+                                        <div class="skeleton" style="width:80px;height:16px;"></div>
+                                        <div class="skeleton" style="width:100px;height:16px;"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5"><i class="bi bi-inbox display-1 text-muted"></i><p class="text-muted mt-3">Chưa có câu hỏi nào</p></div>
-                    <nav th:if="${totalPages > 1}" class="mt-4"><ul class="pagination justify-content-center"><li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/(page=${currentPage - 1})}"><i class="bi bi-chevron-left"></i></a></li><li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'"><a class="page-link" th:href="@{/(page=${i})}" th:text="${i + 1}">1</a></li><li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/(page=${currentPage + 1})}"><i class="bi bi-chevron-right"></i></a></li></ul></nav>
+                    
+                    <div th:if="${cauHois != null && !cauHois.isEmpty()}" class="stagger-children">
+                        <div th:each="cauHoi : ${cauHois}" class="question-card hover-lift">
+                            <div class="d-flex gap-3">
+                                <div class="question-stats-sidebar">
+                                    <div class="stat-box" th:classappend="${cauHoi.soluongbinhluan > 0} ? 'has-answers' : ''">
+                                        <span class="stat-number" th:text="${cauHoi.soluongbinhluan}">0</span>
+                                        <span class="stat-label">trả lời</span>
+                                    </div>
+                                    <div class="stat-box views">
+                                        <span class="stat-number" th:text="${cauHoi.luotxem}">0</span>
+                                        <span class="stat-label">lượt xem</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title d-block">
+                                            <th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block>
+                                        </a>
+                                        <span class="badge badge-category ms-2" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span>
+                                    </div>
+                                    <p class="text-secondary small mb-3 question-excerpt" th:if="${cauHoi.noidung != null}" th:utext="${cauHoi.noidung}">Nội dung...</p>
+                                    <p class="text-secondary small mb-3 question-excerpt" th:unless="${cauHoi.noidung != null}">Chưa có nội dung mô tả</p>
+                                    <div class="question-meta">
+                                        <span class="author-info">
+                                            <img th:src="'https://ui-avatars.com/api/?name=' + ${#strings.replace(cauHoi.tennguoidung, ' ', '+')}" class="meta-avatar" alt="Avatar">
+                                            <th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block>
+                                        </span>
+                                        <span><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-5 animate-fadeIn"><i class="bi bi-inbox display-1 text-muted"></i><p class="text-muted mt-3">Chưa có câu hỏi nào</p><a th:href="@{/cau-hoi/dang-moi}" class="btn btn-primary mt-2" sec:authorize="isAuthenticated()"><i class="bi bi-plus-lg me-1"></i>Đặt câu hỏi đầu tiên</a></div>
+                    <nav th:if="${totalPages > 1}" class="mt-4" aria-label="Phân trang"><ul class="pagination justify-content-center"><li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/(page=${currentPage - 1})}" aria-label="Trang trước"><i class="bi bi-chevron-left"></i></a></li><li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${i == currentPage} ? 'active'"><a class="page-link" th:href="@{/(page=${i})}" th:text="${i + 1}" th:aria-label="'Trang ' + (${i + 1})">1</a></li><li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/(page=${currentPage + 1})}" aria-label="Trang sau"><i class="bi bi-chevron-right"></i></a></li></ul></nav>
                 </div>
                 <div class="col-lg-4">
-                    <div class="sidebar-card mb-4" sec:authorize="isAuthenticated()"><div class="text-center"><i class="bi bi-question-circle display-4 text-primary mb-3"></i><h5 class="fw-semibold">Có câu hỏi?</h5><p class="text-secondary small mb-3">Đặt câu hỏi để nhận được câu trả lời từ cộng đồng</p><a th:href="@{/cau-hoi/dang-moi}" class="btn btn-cta w-100"><i class="bi bi-plus-lg me-1"></i>Đặt câu hỏi ngay</a></div></div>
-                    <div class="sidebar-card mb-4" sec:authorize="!isAuthenticated()"><div class="text-center"><i class="bi bi-person-circle display-4 text-primary mb-3"></i><h5 class="fw-semibold">Tham gia ngay</h5><p class="text-secondary small mb-3">Đăng ký để tham gia thảo luận</p><a th:href="@{/dang-ky}" class="btn btn-primary w-100 mb-2"><i class="bi bi-person-plus me-1"></i>Đăng ký</a><a th:href="@{/dang-nhap}" class="btn btn-outline-primary w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a></div></div>
-                    <div class="sidebar-card" th:if="${cauHoiNoiBat != null && !cauHoiNoiBat.isEmpty()}"><h5 class="sidebar-title"><i class="bi bi-fire text-danger me-2"></i>Câu hỏi nổi bật</h5><div th:each="ch : ${cauHoiNoiBat}"><a th:href="@{/cau-hoi/{id}(id=${ch.id})}" class="category-item mb-2"><i class="bi bi-chat-dots text-primary"></i><span class="flex-grow-1 text-truncate" th:text="${#strings.abbreviate(ch.tieude, 50)}">Tiêu đề</span></a></div></div>
+                    <!-- CTA Card - Đặt câu hỏi -->
+                    <div class="cta-card-wrapper mb-4" sec:authorize="isAuthenticated()">
+                        <div class="cta-card-inner">
+                            <div class="cta-particles">
+                                <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                            <div class="cta-content text-center">
+                                <div class="cta-icon-big">
+                                    <i class="bi bi-question-circle-fill"></i>
+                                    <div class="cta-icon-ring"></div>
+                                    <div class="cta-icon-ring ring-2"></div>
+                                </div>
+                                <h3 class="cta-title">Có câu hỏi?</h3>
+                                <p class="cta-desc">Đặt câu hỏi để nhận được câu trả lời từ cộng đồng chuyên gia</p>
+                                <a th:href="@{/cau-hoi/dang-moi}" class="btn-cta-big">
+                                    <span class="btn-cta-text"><i class="bi bi-plus-lg me-2"></i>Đặt câu hỏi ngay</span>
+                                    <span class="btn-cta-shine"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-card mb-4 animate-slideUp" sec:authorize="!isAuthenticated()"><div class="text-center"><i class="bi bi-person-circle display-4 text-primary mb-3"></i><h5 class="fw-semibold">Tham gia ngay</h5><p class="text-secondary small mb-3">Đăng ký để tham gia thảo luận</p><a th:href="@{/dang-ky}" class="btn btn-primary w-100 mb-2 ripple"><i class="bi bi-person-plus me-1"></i>Đăng ký</a><a th:href="@{/dang-nhap}" class="btn btn-outline-primary w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a></div></div>
+                    
+                    <!-- Câu hỏi nổi bật -->
+                    <div class="hot-questions-card" th:if="${cauHoiNoiBat != null && !cauHoiNoiBat.isEmpty()}">
+                        <div class="hot-questions-header">
+                            <div class="fire-icon">
+                                <i class="bi bi-fire"></i>
+                            </div>
+                            <h4 class="hot-questions-title">Câu hỏi nổi bật</h4>
+                        </div>
+                        <div class="hot-questions-list">
+                            <a th:each="ch, iter : ${cauHoiNoiBat}" th:href="@{/cau-hoi/{id}(id=${ch.id})}" class="hot-question-item" th:style="'animation-delay:' + ${iter.index * 0.1} + 's'">
+                                <span class="hot-question-rank" th:text="${iter.index + 1}">1</span>
+                                <span class="hot-question-text" th:text="${#strings.abbreviate(ch.tieude, 45)}">Tiêu đề</span>
+                                <i class="bi bi-chevron-right hot-question-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+        <a th:href="@{/}" class="mobile-nav-item active" aria-label="Trang chủ"><i class="bi bi-house-fill"></i><span>Trang chủ</span></a>
+        <a th:href="@{/tat-ca-cau-hoi}" class="mobile-nav-item" aria-label="Khám phá"><i class="bi bi-compass"></i><span>Khám phá</span></a>
+        <a th:href="@{/cau-hoi/dang-moi}" class="mobile-nav-item" sec:authorize="isAuthenticated()" aria-label="Đặt câu hỏi"><i class="bi bi-plus-circle-fill"></i><span>Hỏi</span></a>
+        <a th:href="@{/dang-nhap}" class="mobile-nav-item" sec:authorize="!isAuthenticated()" aria-label="Đăng nhập"><i class="bi bi-box-arrow-in-right"></i><span>Đăng nhập</span></a>
+        <a th:href="@{/ho-so}" class="mobile-nav-item" sec:authorize="isAuthenticated()" aria-label="Hồ sơ"><i class="bi bi-person-fill"></i><span>Hồ sơ</span></a>
+    </nav>
+    
     <footer class="footer"><div class="container"><div class="row g-4"><div class="col-lg-5"><h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5><p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p></div><div class="col-lg-3"><h6>Liên kết nhanh</h6><ul class="list-unstyled"><li><a th:href="@{/}">Trang chủ</a></li><li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li></ul></div><div class="col-lg-4"><h6>Thông tin dự án</h6><ul class="list-unstyled"><li>SV: Nguyễn Thanh Thiên</li><li>MSSV: 110122161</li><li>Lớp: DA22TTC</li></ul></div></div><hr><p class="text-center mb-0">© 2025 Diễn đàn CNTT</p></div></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    // ============== TOAST SYSTEM ==============
+    function showToast(type, title, message, duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
+        toast.innerHTML = '<div class="toast-icon"><i class="bi ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + title + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="closeToast(this)"><i class="bi bi-x"></i></button><div class="toast-progress"></div>';
+        container.appendChild(toast);
+        setTimeout(() => { toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 300); }, duration);
+    }
+    function closeToast(btn) { const toast = btn.closest('.toast'); toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 300); }
+
+    // ============== NOTIFICATIONS ==============
     let allNotifications=[],currentFilter='all';
-    document.addEventListener('DOMContentLoaded',function(){loadNotifications();loadNotificationCount();setInterval(loadNotificationCount,30000);const nl=document.getElementById('notification-list');if(nl){nl.addEventListener('click',function(e){const item=e.target.closest('.notification-item');if(!item)return;e.preventDefault();const id=item.getAttribute('data-id'),link=item.getAttribute('data-link');if(item.classList.contains('unread')){item.classList.remove('unread');const b=item.querySelector('.notification-badge');if(b)b.style.display='none';const cb=document.querySelector('.notification-count');if(cb){let c=parseInt(cb.textContent)||0;c=Math.max(0,c-1);cb.textContent=c>0?c:'';if(c===0)cb.style.display='none'}const n=allNotifications.find(n=>n.id===id);if(n)n.dadoc=true}fetch('/thong-bao/api/doc/'+id,{method:'POST'});setTimeout(()=>window.location.href=link,200)})}initSearchSuggestions()});
+    document.addEventListener('DOMContentLoaded',function(){loadNotifications();loadNotificationCount();setInterval(loadNotificationCount,30000);const nl=document.getElementById('notification-list');if(nl){nl.addEventListener('click',function(e){const item=e.target.closest('.notification-item');if(!item)return;e.preventDefault();const id=item.getAttribute('data-id'),link=item.getAttribute('data-link');if(item.classList.contains('unread')){item.classList.remove('unread');const b=item.querySelector('.notification-badge');if(b)b.style.display='none';const cb=document.querySelector('.notification-count');if(cb){let c=parseInt(cb.textContent)||0;c=Math.max(0,c-1);cb.textContent=c>0?c:'';if(c===0)cb.style.display='none'}const n=allNotifications.find(n=>n.id===id);if(n)n.dadoc=true}fetch('/thong-bao/api/doc/'+id,{method:'POST'});setTimeout(()=>window.location.href=link,200)})}initSearchSuggestions();
+        // Show success toast if flash message exists
+        const successAlert = document.querySelector('.alert-success');
+        const errorAlert = document.querySelector('.alert-danger');
+        if (successAlert) { const msg = successAlert.querySelector('span').textContent; showToast('success', 'Thành công', msg); }
+        if (errorAlert) { const msg = errorAlert.querySelector('span').textContent; showToast('error', 'Lỗi', msg); }
+    });
     function loadNotificationCount(){fetch('/thong-bao/api/dem-chua-doc').then(r=>r.json()).then(d=>{const b=document.querySelector('.notification-count');if(b){if(d.count>0){b.textContent=d.count>99?'99+':d.count;b.style.display='inline'}else{b.style.display='none'}}}).catch(()=>{})}
     function loadNotifications(){fetch('/thong-bao/api/danh-sach').then(r=>r.json()).then(d=>{allNotifications=d;renderNotifications()}).catch(()=>{})}
-    function renderNotifications(){const c=document.getElementById('notification-list');if(!c)return;let d=currentFilter==='unread'?allNotifications.filter(t=>!t.dadoc):allNotifications;if(d.length===0){c.innerHTML='<div class="empty-notification"><i class="bi bi-inbox"></i><p>'+(currentFilter==='unread'?'Không có thông báo chưa đọc':'Chưa có thông báo nào')+'</p></div>';return}c.innerHTML=d.map(t=>{const av=t.avatarnguoigui||'https://ui-avatars.com/api/?name='+encodeURIComponent(t.tennguoigui||'U')+'&background=2563eb&color=fff';return'<div class="notification-item '+(!t.dadoc?'unread':'')+'" data-id="'+t.id+'" data-link="'+t.link+'"><img src="'+av+'" class="notification-avatar"><div class="notification-content"><p class="notification-text"><span class="notification-sender">'+t.tennguoigui+'</span> đã trả lời câu hỏi của bạn</p><span class="notification-time"><i class="bi bi-clock me-1"></i>'+formatTimeAgo(t.ngaytao)+'</span></div>'+(!t.dadoc?'<span class="notification-badge">Mới</span>':'')+'</div>'}).join('')}
+    function renderNotifications(){const c=document.getElementById('notification-list');if(!c)return;let d=currentFilter==='unread'?allNotifications.filter(t=>!t.dadoc):allNotifications;if(d.length===0){c.innerHTML='<div class="empty-notification"><i class="bi bi-inbox"></i><p>'+(currentFilter==='unread'?'Không có thông báo chưa đọc':'Chưa có thông báo nào')+'</p></div>';return}c.innerHTML=d.map(t=>{const av=t.avatarnguoigui||'https://ui-avatars.com/api/?name='+encodeURIComponent(t.tennguoigui||'U')+'&background=2563eb&color=fff';return'<div class="notification-item '+(!t.dadoc?'unread':'')+'" data-id="'+t.id+'" data-link="'+t.link+'"><img src="'+av+'" class="notification-avatar" alt="Avatar"><div class="notification-content"><p class="notification-text"><span class="notification-sender">'+t.tennguoigui+'</span> đã trả lời câu hỏi của bạn</p><span class="notification-time"><i class="bi bi-clock me-1"></i>'+formatTimeAgo(t.ngaytao)+'</span></div>'+(!t.dadoc?'<span class="notification-badge">Mới</span>':'')+'</div>'}).join('')}
     function filterNotifications(f,b){currentFilter=f;document.querySelectorAll('.tab-btn').forEach(x=>{x.classList.remove('btn-primary');x.classList.add('btn-secondary')});b.classList.remove('btn-secondary');b.classList.add('btn-primary');renderNotifications()}
-    function markAllAsRead(e){e.preventDefault();fetch('/thong-bao/api/doc-tat-ca',{method:'POST'}).then(()=>{loadNotifications();loadNotificationCount()})}
+    function markAllAsRead(e){e.preventDefault();fetch('/thong-bao/api/doc-tat-ca',{method:'POST'}).then(()=>{loadNotifications();loadNotificationCount();showToast('success','Thông báo','Đã đánh dấu tất cả đã đọc',2000)})}
     function formatTimeAgo(d){const s=Math.floor((new Date()-new Date(d))/1000);if(s<60)return'Vừa xong';if(s<3600)return Math.floor(s/60)+' phút trước';if(s<86400)return Math.floor(s/3600)+' giờ trước';if(s<604800)return Math.floor(s/86400)+' ngày trước';return new Date(d).toLocaleDateString('vi-VN')}
     function initSearchSuggestions(){const si=document.getElementById('searchInput'),ss=document.getElementById('searchSuggestions');if(!si||!ss)return;let dt;si.addEventListener('focus',()=>loadSuggestions(si.value));si.addEventListener('input',function(){clearTimeout(dt);dt=setTimeout(()=>loadSuggestions(this.value),200)});document.addEventListener('click',function(e){if(!si.contains(e.target)&&!ss.contains(e.target))ss.classList.remove('show')});function loadSuggestions(q){const url=q.trim()?'/api/tim-kiem/goi-y?q='+encodeURIComponent(q):'/api/tim-kiem/goi-y';fetch(url).then(r=>r.json()).then(d=>renderSuggestions(d,q)).catch(()=>{})}function renderSuggestions(d,q){if(!d||d.length===0){ss.innerHTML='<div class="search-suggestions-header">Không có kết quả</div><div class="p-4 text-center text-muted"><i class="bi bi-search fs-3 d-block mb-2"></i><small>Thử tìm kiếm với từ khóa khác</small></div>';ss.classList.add('show');return}const h=q.trim()?'Kết quả cho "'+q+'"':'Câu hỏi mới nhất';let html='<div class="search-suggestions-header">'+h+'</div>';d.forEach(i=>{html+='<div class="suggestion-item" onclick="goToQuestion(\''+i.id+'\')"><div class="suggestion-avatar">'+(i.chuCaiDau||'U')+'</div><div class="suggestion-content"><div class="suggestion-title">'+i.tieude+'</div><div class="suggestion-meta"><span><i class="bi bi-person"></i> '+i.tennguoidung+'</span><span><i class="bi bi-eye"></i> '+i.luotxem+'</span></div></div></div>'});if(q.trim())html+='<div class="search-view-all"><a href="/tim-kiem?keyword='+encodeURIComponent(q)+'"><i class="bi bi-arrow-right me-1"></i>Xem tất cả</a></div>';ss.innerHTML=html;ss.classList.add('show')}}
     function goToQuestion(id){window.location.href='/cau-hoi/'+id}
@@ -92,4 +211,3 @@
     </script>
 </body>
 </html>
-

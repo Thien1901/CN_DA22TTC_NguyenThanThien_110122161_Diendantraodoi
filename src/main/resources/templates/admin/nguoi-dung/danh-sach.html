@@ -10,14 +10,120 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
+    <!-- Admin CSS - Chỉnh sửa file admin.css để thay đổi tất cả trang -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
     <style>
-        .sidebar { background: var(--bg-base); min-height: calc(100vh - 72px); border-right: 1px solid var(--gray-200); }
-        .sidebar-link { display: block; padding: 12px 20px; color: var(--text-primary); text-decoration: none; border-left: 3px solid transparent; transition: all var(--transition-fast); }
-        .sidebar-link:hover, .sidebar-link.active { background-color: rgba(0, 102, 255, 0.1); color: var(--primary); border-left-color: var(--primary); }
+        /* Styles riêng cho trang này (nếu cần) */
+        
+        /* Navbar cải tiến */
+        .navbar {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%) !important;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        
         .content-card { background: var(--bg-base); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); }
+        .search-filter-bar { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-sunken); border-radius: var(--radius-lg); }
+        .bulk-actions { display: none; padding: 0.75rem 1rem; background: linear-gradient(135deg, var(--primary), #0052cc); color: white; border-radius: var(--radius-lg); margin-bottom: 1rem; }
+        .bulk-actions.show { display: flex; align-items: center; gap: 1rem; animation: slideDown 0.3s ease; }
+        .user-row { transition: all var(--transition-fast); }
+        .user-row:hover { background: var(--bg-elevated); }
+        .user-row.selected { background: rgba(0, 102, 255, 0.05); }
+        .sortable { cursor: pointer; user-select: none; }
+        .sortable:hover { color: var(--primary); }
+        .sortable i { font-size: 0.75rem; margin-left: 0.25rem; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Nút chức năng nổi bật */
+        .action-btn-group { display: flex; gap: 6px; }
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .action-btn-view { background: linear-gradient(135deg, #0066ff, #0052cc); color: white; }
+        .action-btn-view:hover { background: linear-gradient(135deg, #0052cc, #003d99); color: white; }
+        .action-btn-lock { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .action-btn-lock:hover { background: linear-gradient(135deg, #d97706, #b45309); color: white; }
+        .action-btn-unlock { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .action-btn-unlock:hover { background: linear-gradient(135deg, #059669, #047857); color: white; }
+        .action-btn-delete { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .action-btn-delete:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+        
+        /* Avatar cải tiến */
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+        }
+        
+        /* Badge trạng thái cải tiến */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-active { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .status-locked { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+        
+        /* Role badge */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .role-admin { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .role-user { background: linear-gradient(135deg, #0066ff, #0052cc); color: white; }
+        
+        /* Tooltip */
+        [data-tooltip] {
+            position: relative;
+        }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            background: #1f2937;
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 6px;
+        }
+        [data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1f2937;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</a>
@@ -31,64 +137,330 @@
         <div class="row">
             <div class="col-md-2 p-0 sidebar">
                 <div class="py-3">
+                    <div class="sidebar-title">Quản lý</div>
                     <a th:href="@{/admin}" class="sidebar-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link active"><i class="bi bi-people me-2"></i>Người dùng</a>
-                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-dots me-2"></i>Câu hỏi</a>
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link active"><i class="bi bi-people-fill me-2"></i>Người dùng</a>
+                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-square-dots-fill me-2"></i>Câu hỏi</a>
                     <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link"><i class="bi bi-clock-history me-2"></i>Chờ duyệt</a>
-                    <a th:href="@{/admin/chu-de}" class="sidebar-link"><i class="bi bi-folder me-2"></i>Chủ đề</a>
-                    <hr>
-                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house me-2"></i>Về trang chủ</a>
+                    <a th:href="@{/admin/chu-de}" class="sidebar-link"><i class="bi bi-folder-fill me-2"></i>Chủ đề</a>
+                    <hr class="sidebar-divider">
+                    <div class="sidebar-title">Điều hướng</div>
+                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house-door-fill me-2"></i>Về trang chủ</a>
                 </div>
             </div>
 
             <div class="col-md-10 p-4">
-                <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show animate-slideUp"><i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
                 
                 <div class="content-card">
-                    <h4 class="mb-4"><i class="bi bi-people me-2"></i>Quản lý người dùng</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="bi bi-people me-2"></i>Quản lý người dùng</h4>
+                        <span class="badge bg-primary" th:text="${#lists.size(nguoiDungs)} + ' người dùng'">0 người dùng</span>
+                    </div>
+                    
+                    <!-- Search & Filter Bar -->
+                    <div class="search-filter-bar">
+                        <div class="flex-grow-1">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Tìm theo tên, username, email...">
+                            </div>
+                        </div>
+                        <select class="form-select" style="width: auto;" id="filterRole">
+                            <option value="">Tất cả vai trò</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="USER">User</option>
+                        </select>
+                        <select class="form-select" style="width: auto;" id="filterStatus">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="hoatdong">Hoạt động</option>
+                            <option value="bikhoa">Bị khóa</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" onclick="resetFilters()"><i class="bi bi-x-lg me-1"></i>Xóa bộ lọc</button>
+                    </div>
+                    
+                    <!-- Bulk Actions -->
+                    <div class="bulk-actions" id="bulkActions">
+                        <span><strong id="selectedCount">0</strong> đã chọn</span>
+                        <div class="ms-auto d-flex gap-2">
+                            <button class="btn btn-light btn-sm" onclick="bulkAction('lock')"><i class="bi bi-lock me-1"></i>Khóa</button>
+                            <button class="btn btn-light btn-sm" onclick="bulkAction('unlock')"><i class="bi bi-unlock me-1"></i>Mở khóa</button>
+                            <button class="btn btn-danger btn-sm" onclick="bulkAction('delete')"><i class="bi bi-trash me-1"></i>Xóa</button>
+                            <button class="btn btn-outline-light btn-sm" onclick="clearSelection()"><i class="bi bi-x"></i></button>
+                        </div>
+                    </div>
+                    
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover" id="usersTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Họ tên</th>
-                                    <th>Tên đăng nhập</th>
+                                    <th style="width:40px"><input type="checkbox" class="form-check-input" id="selectAll"></th>
+                                    <th class="sortable" data-sort="hoten">Họ tên <i class="bi bi-arrow-down-up"></i></th>
+                                    <th class="sortable" data-sort="tendangnhap">Tên đăng nhập <i class="bi bi-arrow-down-up"></i></th>
                                     <th>Email</th>
-                                    <th>Vai trò</th>
+                                    <th class="sortable" data-sort="vaitro">Vai trò <i class="bi bi-arrow-down-up"></i></th>
                                     <th>Trạng thái</th>
-                                    <th>Ngày tạo</th>
+                                    <th class="sortable" data-sort="ngaytao">Ngày tạo <i class="bi bi-arrow-down-up"></i></th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr th:each="nd : ${nguoiDungs}">
-                                    <td th:text="${nd.hoten}">Họ tên</td>
-                                    <td th:text="${nd.tendangnhap}">Username</td>
-                                    <td th:text="${nd.email}">Email</td>
-                                    <td><span class="badge" th:classappend="${nd.vaitro.mavaitro == 'ADMIN'} ? 'bg-danger' : 'bg-primary'" th:text="${nd.vaitro.tenvaitro}">Vai trò</span></td>
+                            <tbody id="usersTableBody">
+                                <tr th:each="nd : ${nguoiDungs}" class="user-row" th:data-role="${nd.vaitro.mavaitro}" th:data-status="${nd.trangthai}">
+                                    <td><input type="checkbox" class="form-check-input row-checkbox" th:value="${nd.manguoidung}"></td>
                                     <td>
-                                        <span th:if="${nd.trangthai == 'hoatdong'}" class="badge bg-success">Hoạt động</span>
-                                        <span th:if="${nd.trangthai == 'bikhoa'}" class="badge bg-secondary">Bị khóa</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img class="user-avatar" alt="Avatar"
+                                                 th:data-name="${nd.hoten}"
+                                                 src="https://ui-avatars.com/api/?name=User&background=random"
+                                                 th:attr="data-src=${nd.anhdaidien}"
+                                                 onerror="this.onerror=null;">
+                                            <div>
+                                                <div class="fw-semibold" th:text="${nd.hoten}">Họ tên</div>
+                                                <small class="text-muted" th:text="${nd.email}">email</small>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td th:text="${#temporals.format(nd.ngaytao, 'dd/MM/yyyy')}">Ngày</td>
+                                    <td><code class="px-2 py-1 bg-light rounded" th:text="${nd.tendangnhap}">Username</code></td>
+                                    <td th:text="${nd.email}">Email</td>
                                     <td>
-                                        <form th:if="${nd.trangthai == 'hoatdong'}" th:action="@{/admin/nguoi-dung/{id}/khoa(id=${nd.manguoidung})}" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Khóa tài khoản này?')"><i class="bi bi-lock"></i></button>
-                                        </form>
-                                        <form th:if="${nd.trangthai == 'bikhoa'}" th:action="@{/admin/nguoi-dung/{id}/mo-khoa(id=${nd.manguoidung})}" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-unlock"></i></button>
-                                        </form>
-                                        <form th:action="@{/admin/nguoi-dung/{id}/xoa(id=${nd.manguoidung})}" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Xóa người dùng này?')"><i class="bi bi-trash"></i></button>
-                                        </form>
+                                        <span class="role-badge" th:classappend="${nd.vaitro.mavaitro == 'ADMIN'} ? 'role-admin' : 'role-user'">
+                                            <i th:class="${nd.vaitro.mavaitro == 'ADMIN'} ? 'bi bi-shield-fill me-1' : 'bi bi-person-fill me-1'"></i>
+                                            <span th:text="${nd.vaitro.tenvaitro}">Vai trò</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${nd.trangthai == 'hoatdong'}" class="status-badge status-active">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Hoạt động
+                                        </span>
+                                        <span th:if="${nd.trangthai == 'bikhoa'}" class="status-badge status-locked">
+                                            <i class="bi bi-lock-fill me-1"></i>Bị khóa
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            <span th:text="${#temporals.format(nd.ngaytao, 'dd/MM/yyyy')}">Ngày</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-btn-group">
+                                            <a th:href="@{/ho-so/{id}(id=${nd.manguoidung})}" class="action-btn action-btn-view" data-tooltip="Xem hồ sơ">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </a>
+                                            <form th:if="${nd.trangthai == 'hoatdong'}" th:action="@{/admin/nguoi-dung/{id}/khoa(id=${nd.manguoidung})}" method="post" class="d-inline">
+                                                <button type="submit" class="action-btn action-btn-lock" data-tooltip="Khóa tài khoản" onclick="return confirm('Khóa tài khoản này?')">
+                                                    <i class="bi bi-lock-fill"></i>
+                                                </button>
+                                            </form>
+                                            <form th:if="${nd.trangthai == 'bikhoa'}" th:action="@{/admin/nguoi-dung/{id}/mo-khoa(id=${nd.manguoidung})}" method="post" class="d-inline">
+                                                <button type="submit" class="action-btn action-btn-unlock" data-tooltip="Mở khóa">
+                                                    <i class="bi bi-unlock-fill"></i>
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/admin/nguoi-dung/{id}/xoa(id=${nd.manguoidung})}" method="post" class="d-inline">
+                                                <button type="submit" class="action-btn action-btn-delete" data-tooltip="Xóa người dùng" onclick="return confirm('Xóa người dùng này? Hành động không thể hoàn tác!')">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- No results message -->
+                    <div id="noResults" class="text-center py-5" style="display:none;">
+                        <i class="bi bi-search display-4 text-muted"></i>
+                        <p class="text-muted mt-3">Không tìm thấy người dùng phù hợp</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5>
+                    <p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên Công nghệ thông tin.</p>
+                </div>
+                <div class="col-lg-3">
+                    <h6>Liên kết nhanh</h6>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}">Trang chủ</a></li>
+                        <li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li>
+                        <li><a th:href="@{/tim-kiem}">Tìm kiếm</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6>Thông tin dự án</h6>
+                    <ul class="list-unstyled">
+                        <li>Sinh viên: Nguyễn Thanh Thiên</li>
+                        <li>MSSV: 110122161</li>
+                        <li>Lớp: DA22TTC</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <p class="text-center mb-0">&copy; 2025 Diễn đàn CNTT. All rights reserved.</p>
+        </div>
+    </footer>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Toast System
+    function showToast(type, title, message) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
+        toast.innerHTML = '<div class="toast-icon"><i class="bi ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + title + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>';
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+    
+    // Search & Filter
+    const searchInput = document.getElementById('searchInput');
+    const filterRole = document.getElementById('filterRole');
+    const filterStatus = document.getElementById('filterStatus');
+    const rows = document.querySelectorAll('.user-row');
+    const noResults = document.getElementById('noResults');
+    
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const roleFilter = filterRole.value;
+        const statusFilter = filterStatus.value;
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const role = row.dataset.role;
+            const status = row.dataset.status;
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesRole = !roleFilter || role === roleFilter;
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            if (matchesSearch && matchesRole && matchesStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+    
+    searchInput?.addEventListener('input', filterTable);
+    filterRole?.addEventListener('change', filterTable);
+    filterStatus?.addEventListener('change', filterTable);
+    
+    function resetFilters() {
+        searchInput.value = '';
+        filterRole.value = '';
+        filterStatus.value = '';
+        filterTable();
+    }
+    
+    // Checkbox Selection
+    const selectAll = document.getElementById('selectAll');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    function updateBulkActions() {
+        const checked = document.querySelectorAll('.row-checkbox:checked');
+        const count = checked.length;
+        selectedCount.textContent = count;
+        
+        if (count > 0) {
+            bulkActions.classList.add('show');
+        } else {
+            bulkActions.classList.remove('show');
+        }
+        
+        // Update select all checkbox state
+        selectAll.checked = count === rowCheckboxes.length && count > 0;
+        selectAll.indeterminate = count > 0 && count < rowCheckboxes.length;
+    }
+    
+    selectAll?.addEventListener('change', function() {
+        rowCheckboxes.forEach(cb => {
+            if (cb.closest('tr').style.display !== 'none') {
+                cb.checked = this.checked;
+                cb.closest('tr').classList.toggle('selected', this.checked);
+            }
+        });
+        updateBulkActions();
+    });
+    
+    rowCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            this.closest('tr').classList.toggle('selected', this.checked);
+            updateBulkActions();
+        });
+    });
+    
+    function clearSelection() {
+        rowCheckboxes.forEach(cb => {
+            cb.checked = false;
+            cb.closest('tr').classList.remove('selected');
+        });
+        selectAll.checked = false;
+        updateBulkActions();
+    }
+    
+    function bulkAction(action) {
+        const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) return;
+        
+        const actionText = action === 'lock' ? 'khóa' : action === 'unlock' ? 'mở khóa' : 'xóa';
+        if (!confirm(`Bạn có chắc muốn ${actionText} ${selected.length} người dùng?`)) return;
+        
+        showToast('info', 'Đang xử lý...', `Đang ${actionText} ${selected.length} người dùng`);
+        // TODO: Implement bulk action API call
+    }
+    
+    // Sortable columns
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.addEventListener('click', function() {
+            const sort = this.dataset.sort;
+            const tbody = document.getElementById('usersTableBody');
+            const rowsArray = Array.from(tbody.querySelectorAll('tr'));
+            
+            const isAsc = this.classList.contains('asc');
+            document.querySelectorAll('.sortable').forEach(s => s.classList.remove('asc', 'desc'));
+            this.classList.add(isAsc ? 'desc' : 'asc');
+            
+            rowsArray.sort((a, b) => {
+                const aVal = a.querySelector(`td:nth-child(${this.cellIndex + 1})`).textContent.trim();
+                const bVal = b.querySelector(`td:nth-child(${this.cellIndex + 1})`).textContent.trim();
+                return isAsc ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+            });
+            
+            rowsArray.forEach(row => tbody.appendChild(row));
+        });
+    });
+
+    // Avatar - load from data-src or use fallback
+    document.querySelectorAll('.user-avatar').forEach(img => {
+        const name = img.dataset.name || 'User';
+        const customSrc = img.dataset.src;
+        const fallbackUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name.replace(/ /g, '+')) + '&background=random&color=fff';
+        
+        if (customSrc && customSrc.trim() !== '' && customSrc !== 'null') {
+            img.src = customSrc;
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = fallbackUrl;
+            };
+        } else {
+            img.src = fallbackUrl;
+        }
+    });
+    </script>
 </body>
 </html>

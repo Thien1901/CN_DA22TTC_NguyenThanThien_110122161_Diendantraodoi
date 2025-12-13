@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head Fragment -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Diễn đàn trao đổi kiến thức chuyên ngành Công nghệ thông tin">
+    <title th:text="${title} + ' - Diễn đàn CNTT'">Diễn đàn CNTT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/design-system.css}" rel="stylesheet">
+</head>
+
+<!-- Navbar Fragment -->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg">
+    <div class="container">
+        <!-- Mobile menu toggle -->
+        <button class="navbar-toggler me-2 d-lg-none" type="button" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+        </button>
+        
+        <a class="navbar-brand" th:href="@{/}">
+            <i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="bi bi-three-dots-vertical"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}" th:classappend="${#httpServletRequest.requestURI == '/'} ? 'active'"><i class="bi bi-house"></i>Trang chủ</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-grid"></i>Chủ đề
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-topic">
+                        <li><a class="dropdown-item" th:href="@{/tat-ca-cau-hoi}"><i class="bi bi-collection"></i>Tất cả câu hỏi</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li th:each="cd : ${danhSachChuDeGlobal}">
+                            <a class="dropdown-item" th:href="@{/chu-de/{ma}(ma=${cd.machude})}">
+                                <i th:class="${cd.icon != null ? cd.icon : 'bi bi-folder'}"></i>
+                                <span th:text="${cd.tenchude}">Chủ đề</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <!-- Search Box with Autocomplete -->
+            <form class="d-none d-lg-flex me-3" th:action="@{/tim-kiem}" method="get" autocomplete="off" id="searchFormNav">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input class="form-control" type="search" name="q" id="searchInputNav" placeholder="Tìm kiếm câu hỏi, chủ đề...">
+                    <div class="search-suggestions" id="searchSuggestionsNav"></div>
+                </div>
+            </form>
+            
+            <!-- User Navigation -->
+            <ul class="navbar-nav align-items-center">
+                <!-- Dark Mode Toggle -->
+                <li class="nav-item me-2">
+                    <button class="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Chế độ tối">
+                        <i class="bi bi-sun-fill icon-sun"></i>
+                        <i class="bi bi-moon-fill icon-moon"></i>
+                    </button>
+                </li>
+                
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/admin}"><i class="bi bi-shield-lock"></i><span class="d-none d-xl-inline ms-1">Quản trị</span></a>
+                </li>
+                
+                <!-- Notifications -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="notificationDropdownNav" aria-label="Thông báo">
+                        <i class="bi bi-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-count" style="display:none;font-size:0.65rem">0</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0">
+                        <div class="notification-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-semibold"><i class="bi bi-bell me-2"></i>Thông báo</h6>
+                                <a href="#" class="text-primary small" onclick="markAllAsRead(event)">Đọc hết</a>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-sm btn-primary tab-btn active" onclick="filterNotifications('all',this)">Tất cả</button>
+                                <button class="btn btn-sm btn-secondary tab-btn" onclick="filterNotifications('unread',this)">Chưa đọc</button>
+                            </div>
+                        </div>
+                        <div id="notification-list-nav" style="max-height:350px;overflow-y:auto">
+                            <div class="empty-notification"><i class="bi bi-inbox"></i><p>Chưa có thông báo nào</p></div>
+                        </div>
+                    </div>
+                </li>
+                
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()">
+                    <a class="btn btn-cta" th:href="@{/cau-hoi/dang-moi}"><i class="bi bi-plus-lg"></i><span class="d-none d-md-inline">Đặt câu hỏi</span></a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/dang-nhap}"><i class="bi bi-box-arrow-in-right"></i>Đăng nhập</a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="btn btn-primary ms-2" th:href="@{/dang-ky}"><i class="bi bi-person-plus"></i>Đăng ký</a>
+                </li>
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm me-2" alt="Avatar">
+                        <span sec:authentication="name" class="d-none d-lg-inline">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header" sec:authorize="isAuthenticated()">
+                            <div class="d-flex align-items-center gap-2">
+                                <img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm" alt="Avatar">
+                                <div>
+                                    <div class="fw-semibold" th:text="${currentUser?.hoten}">Tên người dùng</div>
+                                    <small class="text-muted" sec:authentication="name">username</small>
+                                </div>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person"></i>Hồ sơ cá nhân</a></li>
+                        <li><a class="dropdown-item" th:href="@{/ho-so/cau-hoi-cua-toi}"><i class="bi bi-question-circle"></i>Câu hỏi của tôi</a></li>
+                        <li><a class="dropdown-item" th:href="@{/ho-so/chinh-sua}"><i class="bi bi-gear"></i>Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/dang-xuat}" method="post" class="m-0">
+                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Sidebar Overlay -->
+<div th:fragment="sidebar-overlay" class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Left Sidebar Navigation Fragment -->
+<aside th:fragment="sidebar" class="sidebar-nav" id="sidebarNav">
+    <div class="sidebar-nav-header">
+        <span class="sidebar-nav-title">Khám phá</span>
+        <button class="sidebar-toggle-btn d-none d-lg-flex" onclick="collapseSidebar()" aria-label="Thu gọn">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="sidebar-toggle-btn d-lg-none" onclick="toggleSidebar()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="sidebar-nav-content">
+        <a th:href="@{/}" class="sidebar-nav-link" th:classappend="${#httpServletRequest.requestURI == '/'} ? 'active'">
+            <i class="bi bi-house"></i>
+            <span class="sidebar-nav-text">Trang chủ</span>
+        </a>
+        <a th:href="@{/tat-ca-cau-hoi}" class="sidebar-nav-link" th:classappend="${#httpServletRequest.requestURI == '/tat-ca-cau-hoi'} ? 'active'">
+            <i class="bi bi-collection"></i>
+            <span class="sidebar-nav-text">Tất cả câu hỏi</span>
+        </a>
+        
+        <div class="sidebar-nav-header mt-3 mb-2" style="border:none; padding: 0;">
+            <span class="sidebar-nav-title">Chủ đề</span>
+        </div>
+        
+        <th:block th:each="cd : ${danhSachChuDeGlobal}">
+            <a class="sidebar-nav-link" th:href="@{/chu-de/{ma}(ma=${cd.machude})}">
+                <i th:class="${cd.icon != null ? cd.icon : 'bi bi-folder'}"></i>
+                <span class="sidebar-nav-text" th:text="${cd.tenchude}">Chủ đề</span>
+            </a>
+        </th:block>
+        
+        <div class="sidebar-nav-header mt-3 mb-2" style="border:none; padding: 0;">
+            <span class="sidebar-nav-title">Cộng đồng</span>
+        </div>
+        
+        <a th:href="@{/tim-kiem}" class="sidebar-nav-link">
+            <i class="bi bi-search"></i>
+            <span class="sidebar-nav-text">Tìm kiếm</span>
+        </a>
+        
+        <a th:href="@{/ho-so/cau-hoi-cua-toi}" class="sidebar-nav-link" sec:authorize="isAuthenticated()">
+            <i class="bi bi-bookmark"></i>
+            <span class="sidebar-nav-text">Câu hỏi của tôi</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Toast Container Fragment -->
+<div th:fragment="toast-container" class="toast-container" id="toastContainer"></div>
+
+<!-- Common Scripts Fragment -->
+<script th:fragment="common-scripts">
+// Dark Mode Toggle
+function toggleDarkMode() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+}
+
+// Load saved theme
+(function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+})();
+
+// Sidebar Toggle (Mobile)
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebarNav');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+    }
+}
+
+// Sidebar Collapse (Desktop)
+function collapseSidebar() {
+    const sidebar = document.getElementById('sidebarNav');
+    const main = document.querySelector('.main-with-sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+        if (main) main.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+    }
+}
+
+// Toast Notification System
+function showToast(type, title, message, duration = 5000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const icons = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-x-circle-fill',
+        warning: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="bi ${icons[type]}"></i></div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+    `;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('toast-exiting');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// Notification Functions
+let allNotifications = [], currentFilter = 'all';
+
+function loadNotificationCount() {
+    fetch('/thong-bao/api/dem-chua-doc').then(r => r.json()).then(d => {
+        document.querySelectorAll('.notification-count').forEach(b => {
+            if (d.count > 0) {
+                b.textContent = d.count > 99 ? '99+' : d.count;
+                b.style.display = 'inline';
+            } else {
+                b.style.display = 'none';
+            }
+        });
+    }).catch(() => {});
+}
+
+function loadNotifications() {
+    fetch('/thong-bao/api/danh-sach').then(r => r.json()).then(d => {
+        allNotifications = d;
+        renderNotifications();
+    }).catch(() => {});
+}
+
+function renderNotifications() {
+    document.querySelectorAll('[id^="notification-list"]').forEach(c => {
+        let d = currentFilter === 'unread' ? allNotifications.filter(t => !t.dadoc) : allNotifications;
+        if (d.length === 0) {
+            c.innerHTML = '<div class="empty-notification"><i class="bi bi-inbox"></i><p>' + (currentFilter === 'unread' ? 'Không có thông báo chưa đọc' : 'Chưa có thông báo nào') + '</p></div>';
+            return;
+        }
+        c.innerHTML = d.map(t => {
+            const av = t.avatarnguoigui || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(t.tennguoigui || 'U') + '&background=0066FF&color=fff';
+            return '<div class="notification-item ' + (!t.dadoc ? 'unread' : '') + '" data-id="' + t.id + '" data-link="' + t.link + '"><img src="' + av + '" class="notification-avatar"><div class="notification-content"><p class="notification-text"><span class="notification-sender">' + t.tennguoigui + '</span> đã trả lời câu hỏi của bạn</p><span class="notification-time"><i class="bi bi-clock me-1"></i>' + formatTimeAgo(t.ngaytao) + '</span></div>' + (!t.dadoc ? '<span class="notification-badge">Mới</span>' : '') + '</div>';
+        }).join('');
+    });
+}
+
+function filterNotifications(f, b) {
+    currentFilter = f;
+    document.querySelectorAll('.tab-btn').forEach(x => {
+        x.classList.remove('btn-primary');
+        x.classList.add('btn-secondary');
+    });
+    b.classList.remove('btn-secondary');
+    b.classList.add('btn-primary');
+    renderNotifications();
+}
+
+function markAllAsRead(e) {
+    e.preventDefault();
+    fetch('/thong-bao/api/doc-tat-ca', { method: 'POST' }).then(() => {
+        loadNotifications();
+        loadNotificationCount();
+    });
+}
+
+function formatTimeAgo(d) {
+    const s = Math.floor((new Date() - new Date(d)) / 1000);
+    if (s < 60) return 'Vừa xong';
+    if (s < 3600) return Math.floor(s / 60) + ' phút trước';
+    if (s < 86400) return Math.floor(s / 3600) + ' giờ trước';
+    if (s < 604800) return Math.floor(s / 86400) + ' ngày trước';
+    return new Date(d).toLocaleDateString('vi-VN');
+}
+
+// Search Suggestions
+function initSearchSuggestions() {
+    document.querySelectorAll('[id^="searchInput"]').forEach(si => {
+        const ss = si.parentElement.querySelector('.search-suggestions');
+        if (!ss) return;
+        let dt;
+        si.addEventListener('focus', () => loadSuggestions(si, ss, si.value));
+        si.addEventListener('input', function() {
+            clearTimeout(dt);
+            dt = setTimeout(() => loadSuggestions(si, ss, this.value), 200);
+        });
+        document.addEventListener('click', function(e) {
+            if (!si.contains(e.target) && !ss.contains(e.target)) ss.classList.remove('show');
+        });
+    });
+}
+
+function loadSuggestions(si, ss, q) {
+    const url = q.trim() ? '/api/tim-kiem/goi-y?q=' + encodeURIComponent(q) : '/api/tim-kiem/goi-y';
+    fetch(url).then(r => r.json()).then(d => renderSuggestions(ss, d, q)).catch(() => {});
+}
+
+function renderSuggestions(ss, d, q) {
+    if (!d || d.length === 0) {
+        ss.innerHTML = '<div class="search-suggestions-header">Không có kết quả</div><div class="p-4 text-center text-muted"><i class="bi bi-search fs-3 d-block mb-2"></i><small>Thử tìm kiếm với từ khóa khác</small></div>';
+        ss.classList.add('show');
+        return;
+    }
+    const h = q.trim() ? 'Kết quả cho "' + q + '"' : 'Câu hỏi mới nhất';
+    let html = '<div class="search-suggestions-header">' + h + '</div>';
+    d.forEach(i => {
+        html += '<div class="suggestion-item" onclick="goToQuestion(\'' + i.id + '\')">';
+        html += '<div class="suggestion-avatar">' + (i.chuCaiDau || 'U') + '</div>';
+        html += '<div class="suggestion-content">';
+        html += '<div class="suggestion-title">' + i.tieude + '</div>';
+        html += '<div class="suggestion-meta">';
+        html += '<span><i class="bi bi-person"></i>' + i.tennguoidung + '</span>';
+        html += '<span><i class="bi bi-eye"></i>' + i.luotxem + '</span>';
+        html += '</div></div></div>';
+    });
+    if (q.trim()) html += '<div class="search-view-all"><a href="/tim-kiem?q=' + encodeURIComponent(q) + '"><i class="bi bi-arrow-right me-1"></i>Xem tất cả</a></div>';
+    ss.innerHTML = html;
+    ss.classList.add('show');
+}
+
+function goToQuestion(id) { window.location.href = '/cau-hoi/' + id; }
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    loadNotificationCount();
+    setInterval(loadNotificationCount, 30000);
+    initSearchSuggestions();
+    
+    // Notification click handler
+    document.querySelectorAll('[id^="notification-list"]').forEach(nl => {
+        nl.addEventListener('click', function(e) {
+            const item = e.target.closest('.notification-item');
+            if (!item) return;
+            e.preventDefault();
+            const id = item.getAttribute('data-id'), link = item.getAttribute('data-link');
+            if (item.classList.contains('unread')) {
+                item.classList.remove('unread');
+                const b = item.querySelector('.notification-badge');
+                if (b) b.style.display = 'none';
+                const n = allNotifications.find(n => n.id === id);
+                if (n) n.dadoc = true;
+                loadNotificationCount();
+            }
+            fetch('/thong-bao/api/doc/' + id, { method: 'POST' });
+            setTimeout(() => window.location.href = link, 200);
+        });
+    });
+    
+    // Dropdown notification load
+    document.querySelectorAll('[id^="notificationDropdown"]').forEach(dd => {
+        dd.addEventListener('show.bs.dropdown', loadNotifications);
+    });
+    
+    // Restore sidebar state
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (sidebarCollapsed) {
+        const sidebar = document.getElementById('sidebarNav');
+        const main = document.querySelector('.main-with-sidebar');
+        if (sidebar) sidebar.classList.add('collapsed');
+        if (main) main.classList.add('sidebar-collapsed');
+    }
+    
+    // Add page fade-in animation
+    document.body.classList.add('page-fade-in');
+});
+
+// Navbar scroll effect
+window.addEventListener('scroll', function() {
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        navbar.classList.toggle('scrolled', window.scrollY > 10);
+    }
+});
+</script>
+
+</html>

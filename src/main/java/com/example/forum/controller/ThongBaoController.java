@@ -18,6 +18,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/thong-bao")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ThongBaoController {
     
     private final ThongBaoService thongBaoService;

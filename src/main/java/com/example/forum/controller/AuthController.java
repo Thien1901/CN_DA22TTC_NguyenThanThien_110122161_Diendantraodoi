@@ -80,4 +80,27 @@ public class AuthController {
         
         return "redirect:/dang-nhap";
     }
+    
+    @GetMapping("/quen-mat-khau")
+    public String trangQuenMatKhau() {
+        return "quen-mat-khau";
+    }
+    
+    @PostMapping("/quen-mat-khau")
+    public String xuLyQuenMatKhau(@RequestParam String email, Model model, RedirectAttributes redirectAttributes) {
+        // Kiểm tra email có tồn tại không
+        var nguoiDung = nguoiDungService.timTheoEmail(email);
+        
+        if (nguoiDung.isEmpty()) {
+            model.addAttribute("error", "Email không tồn tại trong hệ thống!");
+            return "quen-mat-khau";
+        }
+        
+        // TODO: Gửi email đặt lại mật khẩu
+        // Trong thực tế, cần tích hợp dịch vụ gửi email và tạo token reset
+        
+        // Hiển thị thông báo thành công
+        model.addAttribute("success", true);
+        return "quen-mat-khau";
+    }
 }

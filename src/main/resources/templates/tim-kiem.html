@@ -69,20 +69,33 @@
             <div th:if="${keyword != null && !keyword.isEmpty()}">
                 <div th:if="${cauHois != null && !cauHois.isEmpty()}">
                     <h5 class="mb-4 text-secondary"><i class="bi bi-list-ul me-2"></i>Danh sách kết quả</h5>
-                    <div th:each="cauHoi : ${cauHois}" class="question-card">
+                    <div th:each="cauHoi : ${cauHois}" class="question-card hover-lift">
                         <div class="d-flex gap-3">
-                            <div class="flex-grow-1">
-                                <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title d-block mb-2"><th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block></a>
-                                <p class="text-secondary small mb-3" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p>
-                                <div class="question-meta">
-                                    <span><i class="bi bi-person"></i><th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block></span>
-                                    <span><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
-                                    <span><i class="bi bi-eye"></i><th:block th:text="${cauHoi.luotxem}">0</th:block></span>
-                                    <span><i class="bi bi-chat"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block></span>
+                            <div class="question-stats-sidebar">
+                                <div class="stat-box" th:classappend="${cauHoi.soluongbinhluan > 0} ? 'has-answers' : ''">
+                                    <span class="stat-number" th:text="${cauHoi.soluongbinhluan}">0</span>
+                                    <span class="stat-label">trả lời</span>
+                                </div>
+                                <div class="stat-box views">
+                                    <span class="stat-number" th:text="${cauHoi.luotxem}">0</span>
+                                    <span class="stat-label">lượt xem</span>
                                 </div>
                             </div>
-                            <div class="flex-shrink-0">
-                                <a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="question-title d-block">
+                                        <th:block th:text="${cauHoi.tieude}">Tiêu đề</th:block>
+                                    </a>
+                                    <a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category ms-2" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a>
+                                </div>
+                                <p class="text-secondary small mb-3 question-excerpt" th:text="${#strings.abbreviate(cauHoi.noidung, 150)}">Nội dung...</p>
+                                <div class="question-meta">
+                                    <span class="author-info">
+                                        <img th:src="'https://ui-avatars.com/api/?name=' + ${#strings.replace(cauHoi.tennguoidung, ' ', '+')}" class="meta-avatar" alt="Avatar">
+                                        <th:block th:text="${cauHoi.tennguoidung}">Tác giả</th:block>
+                                    </span>
+                                    <span><i class="bi bi-clock"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy HH:mm')}">Thời gian</th:block></span>
+                                </div>
                             </div>
                         </div>
                     </div>

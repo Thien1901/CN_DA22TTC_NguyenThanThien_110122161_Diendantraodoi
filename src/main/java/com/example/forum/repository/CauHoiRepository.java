@@ -26,7 +26,7 @@ public interface CauHoiRepository extends MongoRepository<CauHoi, String> {
     List<CauHoi> findByManguoidung(String manguoidung);
     long countByManguoidung(String manguoidung);
     
-    @Query("{'$or': [{'tieude': {$regex: ?0, $options: 'i'}}, {'noidung': {$regex: ?0, $options: 'i'}}], 'daduocduyet': true}")
+    @Query("{'tieude': {$regex: ?0, $options: 'i'}, 'daduocduyet': true}")
     Page<CauHoi> timKiem(String tukhoa, Pageable pageable);
     
     long countByDaduocduyet(boolean daduocduyet);

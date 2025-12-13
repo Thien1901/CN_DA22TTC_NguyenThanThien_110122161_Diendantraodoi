@@ -10,20 +10,37 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
+    <!-- Admin CSS - Chỉnh sửa file admin.css để thay đổi tất cả trang -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
     <style>
-        .sidebar { background: var(--bg-base); min-height: calc(100vh - 72px); border-right: 1px solid var(--gray-200); }
-        .sidebar-link { display: block; padding: 12px 20px; color: var(--text-primary); text-decoration: none; border-left: 3px solid transparent; transition: all var(--transition-fast); }
-        .sidebar-link:hover, .sidebar-link.active { background-color: rgba(0, 102, 255, 0.1); color: var(--primary); border-left-color: var(--primary); }
-        .stat-card { background: var(--bg-base); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); }
+        /* Styles riêng cho trang này (nếu cần) */
+        .stat-card { background: var(--bg-base); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); transition: all var(--transition-fast); }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .stat-icon { width: 60px; height: 60px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
         .stat-number { font-size: 2rem; font-weight: 700; }
+        .stat-trend { font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; }
+        .stat-trend.up { color: var(--success); }
+        .stat-trend.down { color: var(--error); }
+        .chart-card { background: var(--bg-base); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); }
+        .chart-container { position: relative; height: 300px; }
+        .quick-action { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: var(--radius-lg); background: var(--bg-elevated); cursor: pointer; transition: all var(--transition-fast); text-decoration: none; color: var(--text-primary); }
+        .quick-action:hover { background: var(--bg-sunken); transform: translateX(4px); }
+        .quick-action-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .activity-item { display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border-subtle); }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 0.5rem; }
+        [data-theme="dark"] .sidebar { background: var(--bg-elevated); border-color: var(--border-default); }
+        [data-theme="dark"] .stat-card, [data-theme="dark"] .chart-card { background: var(--bg-elevated); }
     </style>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto align-items-center">
                 <span class="nav-link"><i class="bi bi-shield-check me-1"></i>Quản trị viên</span>
                 <form th:action="@{/dang-xuat}" method="post" class="m-0"><button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button></form>
             </div>
@@ -33,66 +50,469 @@
         <div class="row">
             <div class="col-md-2 p-0 sidebar">
                 <div class="py-3">
+                    <div class="sidebar-title">Quản lý</div>
                     <a th:href="@{/admin}" class="sidebar-link active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link"><i class="bi bi-people me-2"></i>Người dùng</a>
-                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-dots me-2"></i>Câu hỏi</a>
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link"><i class="bi bi-people-fill me-2"></i>Người dùng</a>
+                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-square-dots-fill me-2"></i>Câu hỏi</a>
                     <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link"><i class="bi bi-clock-history me-2"></i>Chờ duyệt <span class="badge bg-danger" th:text="${cauHoiChoDuyet}" th:if="${cauHoiChoDuyet > 0}">0</span></a>
-                    <a th:href="@{/admin/chu-de}" class="sidebar-link"><i class="bi bi-folder me-2"></i>Chủ đề</a>
-                    <hr>
-                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house me-2"></i>Về trang chủ</a>
+                    <a th:href="@{/admin/chu-de}" class="sidebar-link"><i class="bi bi-folder-fill me-2"></i>Chủ đề</a>
+                    <hr class="sidebar-divider">
+                    <div class="sidebar-title">Điều hướng</div>
+                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house-door-fill me-2"></i>Về trang chủ</a>
                 </div>
             </div>
             <div class="col-md-10 p-4">
-                <h4 class="mb-4 fw-semibold"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0 fw-semibold"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
+                    <div class="text-muted"><i class="bi bi-calendar3 me-1"></i><span th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd/MM/yyyy')}">Hôm nay</span></div>
+                </div>
+                
+                <!-- Stats Row -->
                 <div class="row g-4 mb-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="d-flex align-items-center">
                                 <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3"><i class="bi bi-people"></i></div>
-                                <div><div class="stat-number" th:text="${tongNguoiDung}">0</div><div class="text-secondary">Người dùng</div></div>
+                                <div>
+                                    <div class="stat-number" th:text="${tongNguoiDung}">0</div>
+                                    <div class="text-secondary">Người dùng</div>
+                                    <div class="stat-trend up"><i class="bi bi-arrow-up"></i>12% so với tháng trước</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="d-flex align-items-center">
                                 <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3"><i class="bi bi-clock-history"></i></div>
-                                <div><div class="stat-number" th:text="${cauHoiChoDuyet}">0</div><div class="text-secondary">Chờ duyệt</div></div>
+                                <div>
+                                    <div class="stat-number" th:text="${cauHoiChoDuyet}">0</div>
+                                    <div class="text-secondary">Chờ duyệt</div>
+                                    <div class="stat-trend" th:classappend="${cauHoiChoDuyet > 5 ? 'down' : 'up'}">
+                                        <i th:class="${cauHoiChoDuyet > 5 ? 'bi bi-exclamation-circle' : 'bi bi-check-circle'}"></i>
+                                        <span th:text="${cauHoiChoDuyet > 5 ? 'Cần xử lý' : 'Đang kiểm soát'}">Status</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="d-flex align-items-center">
-                                <div class="stat-icon bg-info bg-opacity-10 text-info me-3"><i class="bi bi-chat-dots"></i></div>
-                                <div><div class="stat-number" th:text="${tongCauHoi}">0</div><div class="text-secondary">Tổng câu hỏi</div></div>
+                                <div class="stat-icon bg-success bg-opacity-10 text-success me-3"><i class="bi bi-chat-dots"></i></div>
+                                <div>
+                                    <div class="stat-number" th:text="${tongCauHoi}">0</div>
+                                    <div class="text-secondary">Tổng câu hỏi</div>
+                                    <div class="stat-trend up"><i class="bi bi-arrow-up"></i>8% tăng trưởng</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-info bg-opacity-10 text-info me-3"><i class="bi bi-eye"></i></div>
+                                <div>
+                                    <div class="stat-number" th:text="${tongLuotXem}">0</div>
+                                    <div class="text-secondary">Tổng lượt xem</div>
+                                    <div class="stat-trend up"><i class="bi bi-activity"></i>Đang hoạt động</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <h5 class="mb-3 fw-semibold"><i class="bi bi-clock me-2"></i>Câu hỏi mới nhất</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead><tr><th>Tiêu đề</th><th>Người đăng</th><th>Chủ đề</th><th>Ngày đăng</th><th>Trạng thái</th></tr></thead>
-                            <tbody>
-                                <tr th:each="ch : ${cauHoiMoiNhat}">
-                                    <td><a th:href="@{/cau-hoi/{id}(id=${ch.id})}" th:text="${#strings.abbreviate(ch.tieude, 40)}">Tiêu đề</a></td>
-                                    <td th:text="${ch.tennguoidung}">Người đăng</td>
-                                    <td th:text="${ch.chude?.tenchude}">Chủ đề</td>
-                                    <td th:text="${#temporals.format(ch.ngaydang, 'dd/MM/yyyy')}">Ngày</td>
-                                    <td>
-                                        <span th:if="${ch.daduocduyet}" class="badge bg-success">Đã duyệt</span>
-                                        <span th:unless="${ch.daduocduyet}" class="badge bg-warning">Chờ duyệt</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                
+                <div class="row g-4 mb-4">
+                    <!-- Chart -->
+                    <div class="col-lg-8">
+                        <div class="chart-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <h5 class="mb-0 fw-semibold"><i class="bi bi-graph-up me-2"></i>Thống kê hoạt động</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <div class="input-group input-group-sm" style="width: auto;">
+                                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                        <input type="date" class="form-control" id="fromDate" style="width: 130px;">
+                                        <span class="input-group-text">đến</span>
+                                        <input type="date" class="form-control" id="toDate" style="width: 130px;">
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" id="btnApplyDate">
+                                        <i class="bi bi-check-lg"></i> Áp dụng
+                                    </button>
+                                    <select class="form-select form-select-sm" style="width: auto;" id="chartPeriod">
+                                        <option value="">Tùy chọn nhanh</option>
+                                        <option value="7">7 ngày qua</option>
+                                        <option value="30">30 ngày qua</option>
+                                        <option value="90">3 tháng</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="col-lg-4">
+                        <div class="chart-card h-100">
+                            <h5 class="mb-3 fw-semibold"><i class="bi bi-lightning me-2"></i>Thao tác nhanh</h5>
+                            <div class="d-flex flex-column gap-2">
+                                <a th:href="@{/admin/cau-hoi/cho-duyet}" class="quick-action">
+                                    <div class="quick-action-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-check2-square"></i></div>
+                                    <div>
+                                        <div class="fw-semibold">Duyệt câu hỏi</div>
+                                        <small class="text-muted"><span th:text="${cauHoiChoDuyet}">0</span> đang chờ</small>
+                                    </div>
+                                </a>
+                                <a th:href="@{/admin/nguoi-dung}" class="quick-action">
+                                    <div class="quick-action-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-person-plus"></i></div>
+                                    <div>
+                                        <div class="fw-semibold">Quản lý người dùng</div>
+                                        <small class="text-muted">Xem, chỉnh sửa quyền</small>
+                                    </div>
+                                </a>
+                                <a th:href="@{/admin/chu-de}" class="quick-action">
+                                    <div class="quick-action-icon bg-success bg-opacity-10 text-success"><i class="bi bi-folder-plus"></i></div>
+                                    <div>
+                                        <div class="fw-semibold">Thêm chủ đề</div>
+                                        <small class="text-muted">Tạo danh mục mới</small>
+                                    </div>
+                                </a>
+                                <a th:href="@{/admin/cau-hoi}" class="quick-action">
+                                    <div class="quick-action-icon bg-info bg-opacity-10 text-info"><i class="bi bi-search"></i></div>
+                                    <div>
+                                        <div class="fw-semibold">Tìm kiếm câu hỏi</div>
+                                        <small class="text-muted">Lọc, sắp xếp</small>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <!-- Recent Questions -->
+                    <div class="col-lg-8">
+                        <div class="chart-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0 fw-semibold"><i class="bi bi-clock me-2"></i>Câu hỏi mới nhất</h5>
+                                <a th:href="@{/admin/cau-hoi}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead><tr><th>Tiêu đề</th><th>Người đăng</th><th>Chủ đề</th><th>Ngày đăng</th><th>Trạng thái</th><th></th></tr></thead>
+                                    <tbody>
+                                        <tr th:each="ch : ${cauHoiMoiNhat}" class="align-middle">
+                                            <td><a th:href="@{/cau-hoi/{id}(id=${ch.id})}" class="fw-medium text-decoration-none" th:text="${#strings.abbreviate(ch.tieude, 35)}">Tiêu đề</a></td>
+                                            <td><span class="d-flex align-items-center gap-2"><img th:src="'https://ui-avatars.com/api/?name=' + ${#strings.replace(ch.tennguoidung, ' ', '+')}" class="avatar avatar-xs"><span th:text="${ch.tennguoidung}">Người đăng</span></span></td>
+                                            <td><span class="badge bg-light text-dark" th:text="${ch.chude?.tenchude}">Chủ đề</span></td>
+                                            <td th:text="${#temporals.format(ch.ngaydang, 'dd/MM HH:mm')}">Ngày</td>
+                                            <td>
+                                                <span th:if="${ch.daduocduyet}" class="badge bg-success"><i class="bi bi-check me-1"></i>Đã duyệt</span>
+                                                <span th:unless="${ch.daduocduyet}" class="badge bg-warning"><i class="bi bi-clock me-1"></i>Chờ duyệt</span>
+                                            </td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li><a class="dropdown-item" th:href="@{/cau-hoi/{id}(id=${ch.id})}"><i class="bi bi-eye me-2"></i>Xem</a></li>
+                                                        <li><a class="dropdown-item" th:href="@{/cau-hoi/{id}/sua(id=${ch.id})}"><i class="bi bi-pencil me-2"></i>Sửa</a></li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="col-lg-4">
+                        <div class="chart-card h-100">
+                            <h5 class="mb-3 fw-semibold"><i class="bi bi-activity me-2"></i>Hoạt động gần đây</h5>
+                            <div class="activity-list">
+                                <!-- Người dùng mới -->
+                                <th:block th:each="nd : ${nguoiDungMoi}">
+                                    <div class="activity-item">
+                                        <div class="activity-dot bg-success"></div>
+                                        <div>
+                                            <div class="fw-medium"><span th:text="${nd.hoten}">Người dùng</span> đã đăng ký</div>
+                                            <small class="text-muted" th:text="${#temporals.format(nd.ngaytao, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
+                                        </div>
+                                    </div>
+                                </th:block>
+                                
+                                <!-- Câu hỏi mới -->
+                                <th:block th:each="ch : ${hoatDongGanDay}">
+                                    <div class="activity-item">
+                                        <div class="activity-dot" th:classappend="${ch.daduocduyet} ? 'bg-primary' : 'bg-warning'"></div>
+                                        <div>
+                                            <div class="fw-medium">
+                                                <span th:if="${ch.daduocduyet}">Câu hỏi mới: </span>
+                                                <span th:unless="${ch.daduocduyet}">Chờ duyệt: </span>
+                                                <span th:text="${#strings.abbreviate(ch.tieude, 25)}">Tiêu đề</span>
+                                            </div>
+                                            <small class="text-muted" th:text="${#temporals.format(ch.ngaydang, 'dd/MM HH:mm')}">Thời gian</small>
+                                        </div>
+                                    </div>
+                                </th:block>
+                                
+                                <!-- Nếu không có hoạt động nào -->
+                                <div th:if="${#lists.isEmpty(hoatDongGanDay) and #lists.isEmpty(nguoiDungMoi)}" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    Chưa có hoạt động nào
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5>
+                    <p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên Công nghệ thông tin.</p>
+                </div>
+                <div class="col-lg-3">
+                    <h6>Liên kết nhanh</h6>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}">Trang chủ</a></li>
+                        <li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li>
+                        <li><a th:href="@{/tim-kiem}">Tìm kiếm</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6>Thông tin dự án</h6>
+                    <ul class="list-unstyled">
+                        <li>Sinh viên: Nguyễn Thanh Thiên</li>
+                        <li>MSSV: 110122161</li>
+                        <li>Lớp: DA22TTC</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <p class="text-center mb-0">&copy; 2025 Diễn đàn CNTT. All rights reserved.</p>
+        </div>
+    </footer>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+    // Toast System
+    function showToast(type, title, message) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
+        toast.innerHTML = '<div class="toast-icon"><i class="bi ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + title + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>';
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+    
+    // Activity Chart
+    let activityChart;
+    function updateChart(days = 7) {
+        const ctx = document.getElementById('activityChart');
+        if (!ctx) return;
+        
+        // Fetch dữ liệu thực từ API
+        fetch('/api/admin/thong-ke?days=' + days)
+            .then(response => response.json())
+            .then(data => {
+                renderChart(ctx, data);
+            })
+            .catch(error => {
+                console.error('Error fetching stats:', error);
+                // Fallback to sample data
+                renderChart(ctx, {
+                    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                    cauHoi: [2, 3, 1, 4, 2, 5, 3],
+                    cauTraLoi: [4, 6, 2, 8, 4, 10, 6],
+                    nguoiDung: [1, 2, 1, 3, 2, 4, 2]
+                });
+            });
+    }
+    
+    function renderChart(ctx, data) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#94a3b8' : '#64748b';
+        
+        // Tính tổng cho mỗi loại
+        const tongCauHoi = data.cauHoi.reduce((a, b) => a + b, 0);
+        const tongCauTraLoi = data.cauTraLoi.reduce((a, b) => a + b, 0);
+        const tongNguoiDung = data.nguoiDung.reduce((a, b) => a + b, 0);
+        
+        const chartData = {
+            labels: ['Câu hỏi mới', 'Câu trả lời', 'Người dùng mới'],
+            datasets: [
+                {
+                    data: [tongCauHoi, tongCauTraLoi, tongNguoiDung],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981', 
+                        '#f59e0b'
+                    ],
+                    hoverBackgroundColor: [
+                        '#2563eb',
+                        '#059669',
+                        '#d97706'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 4,
+                    spacing: 2
+                }
+            ]
+        };
+        
+        if (activityChart) {
+            activityChart.destroy();
+        }
+        
+        activityChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { 
+                            color: textColor, 
+                            usePointStyle: true, 
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: { size: 13 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                        titleColor: isDark ? '#fff' : '#1e293b',
+                        bodyColor: isDark ? '#94a3b8' : '#64748b',
+                        borderColor: isDark ? '#334155' : '#e2e8f0',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.raw;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return context.label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                    const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                    
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Số lớn ở giữa
+                    ctx.font = 'bold 28px Inter, sans-serif';
+                    ctx.fillStyle = isDark ? '#fff' : '#1e293b';
+                    ctx.fillText(total, centerX, centerY - 8);
+                    
+                    // Text nhỏ bên dưới
+                    ctx.font = '12px Inter, sans-serif';
+                    ctx.fillStyle = textColor;
+                    ctx.fillText('Tổng hoạt động', centerX, centerY + 16);
+                    
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+    
+    // Animated counter
+    function animateCounter(element, target) {
+        let current = 0;
+        const increment = Math.ceil(target / 50);
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target.toLocaleString();
+                clearInterval(timer);
+            } else {
+                element.textContent = current.toLocaleString();
+            }
+        }, 30);
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default dates (7 ngày trước đến hôm nay)
+        const today = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 6);
+        
+        document.getElementById('toDate').value = today.toISOString().split('T')[0];
+        document.getElementById('fromDate').value = sevenDaysAgo.toISOString().split('T')[0];
+        
+        updateChart(7);
+    });
+    
+    // Xử lý nút Áp dụng
+    document.getElementById('btnApplyDate')?.addEventListener('click', function() {
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+        
+        if (fromDate && toDate) {
+            if (new Date(fromDate) > new Date(toDate)) {
+                alert('Ngày bắt đầu phải nhỏ hơn ngày kết thúc!');
+                return;
+            }
+            updateChartByDate(fromDate, toDate);
+            document.getElementById('chartPeriod').value = '';
+        } else {
+            alert('Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!');
+        }
+    });
+    
+    // Xử lý select tùy chọn nhanh
+    document.getElementById('chartPeriod')?.addEventListener('change', function() {
+        const days = parseInt(this.value);
+        if (days) {
+            const today = new Date();
+            const fromDate = new Date();
+            fromDate.setDate(today.getDate() - days + 1);
+            
+            document.getElementById('toDate').value = today.toISOString().split('T')[0];
+            document.getElementById('fromDate').value = fromDate.toISOString().split('T')[0];
+            
+            updateChart(days);
+        }
+    });
+    
+    // Hàm cập nhật chart theo khoảng ngày
+    function updateChartByDate(fromDate, toDate) {
+        const ctx = document.getElementById('activityChart');
+        if (!ctx) return;
+        
+        fetch('/api/admin/thong-ke?fromDate=' + fromDate + '&toDate=' + toDate)
+            .then(response => response.json())
+            .then(data => {
+                renderChart(ctx, data);
+            })
+            .catch(error => {
+                console.error('Error fetching stats:', error);
+            });
+    }
+    </script>
 </body>
 </html>

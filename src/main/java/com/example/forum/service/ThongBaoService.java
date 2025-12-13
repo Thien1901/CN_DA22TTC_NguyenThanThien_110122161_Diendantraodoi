@@ -3,6 +3,7 @@ package com.example.forum.service;
 import com.example.forum.model.ThongBao;
 import com.example.forum.repository.ThongBaoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ThongBaoService {
     
     private final ThongBaoRepository thongBaoRepository;
@@ -43,7 +45,7 @@ public class ThongBaoService {
         return thongBaoRepository.save(thongBao);
     }
     
-    public void danhDauDaDoc(String id) {
+    public void danhDauDaDoc(@NonNull String id) {
         thongBaoRepository.findById(id).ifPresent(tb -> {
             tb.setDadoc(true);
             thongBaoRepository.save(tb);
@@ -58,7 +60,7 @@ public class ThongBaoService {
         });
     }
     
-    public void xoa(String id) {
+    public void xoa(@NonNull String id) {
         thongBaoRepository.deleteById(id);
     }
 }

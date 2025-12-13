@@ -3,6 +3,7 @@ package com.example.forum.service;
 import com.example.forum.model.ChuDeEntity;
 import com.example.forum.repository.ChuDeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -11,6 +12,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ChuDeService {
     
     private final ChuDeRepository chuDeRepository;
@@ -38,15 +40,15 @@ public class ChuDeService {
         return chuDeRepository.findByMachude(machude);
     }
     
-    public Optional<ChuDeEntity> timTheoId(String id) {
+    public Optional<ChuDeEntity> timTheoId(@NonNull String id) {
         return chuDeRepository.findById(id);
     }
     
-    public ChuDeEntity luu(ChuDeEntity chuDe) {
+    public ChuDeEntity luu(@NonNull ChuDeEntity chuDe) {
         return chuDeRepository.save(chuDe);
     }
     
-    public void xoa(String id) {
+    public void xoa(@NonNull String id) {
         chuDeRepository.deleteById(id);
     }
     
