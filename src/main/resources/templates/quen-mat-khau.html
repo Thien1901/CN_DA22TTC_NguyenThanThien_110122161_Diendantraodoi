@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quen mat khau - Dien dan CNTT</title>
+    <title>Quên mật khẩu - Diễn đàn CNTT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,29 +31,29 @@
             <div class="col-md-5">
                 <div class="forgot-card">
                     <div class="forgot-header">
-                        <h3><i class="bi bi-key-fill me-2"></i>Quen mat khau</h3>
-                        <p class="mb-0">Nhap email de lay lai mat khau</p>
+                        <h3><i class="bi bi-key-fill me-2"></i>Quên mật khẩu</h3>
+                        <p class="mb-0">Nhập email để lấy lại mật khẩu</p>
                     </div>
                     <div class="forgot-body">
                         <div th:if="${error}" class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}">Loi</span>
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}">Lỗi</span>
                         </div>
                         <div th:if="${success}" class="alert alert-success">
                             <i class="bi bi-check-circle-fill me-2"></i>
-                            <span>Neu email ton tai, chung toi se gui huong dan dat lai mat khau.</span>
+                            <span>Nếu email tồn tại, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.</span>
                         </div>
                         <form th:action="@{/quen-mat-khau}" method="post" th:unless="${success}">
                             <div class="mb-4">
-                                <label class="form-label"><i class="bi bi-envelope me-1"></i>Dia chi email</label>
-                                <input type="email" name="email" class="form-control" placeholder="Nhap email da dang ky" required>
-                                <small class="text-muted">Chung toi se gui link dat lai mat khau qua email</small>
+                                <label class="form-label"><i class="bi bi-envelope me-1"></i>Địa chỉ email</label>
+                                <input type="email" name="email" class="form-control" placeholder="Nhập email đã đăng ký" required>
+                                <small class="text-muted">Chúng tôi sẽ gửi link đặt lại mật khẩu qua email</small>
                             </div>
                             <button type="submit" class="btn btn-primary btn-forgot w-100 mb-3">
-                                <i class="bi bi-send me-2"></i>Gui yeu cau
+                                <i class="bi bi-send me-2"></i>Gửi yêu cầu
                             </button>
                         </form>
                         <div class="text-center">
-                            <a th:href="@{/dang-nhap}" class="text-primary"><i class="bi bi-arrow-left me-1"></i>Quay lai dang nhap</a>
+                            <a th:href="@{/dang-nhap}" class="text-primary"><i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập</a>
                         </div>
                     </div>
                 </div>

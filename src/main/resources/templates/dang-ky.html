@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dang ky - Dien dan CNTT</title>
+    <title>Đăng ký - Diễn đàn CNTT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,49 +31,49 @@
             <div class="col-md-6">
                 <div class="register-card">
                     <div class="register-header">
-                        <h3><i class="bi bi-person-plus-fill me-2"></i>Tao tai khoan moi</h3>
-                        <p class="mb-0">Tham gia cong dong CNTT ngay hom nay</p>
+                        <h3><i class="bi bi-person-plus-fill me-2"></i>Tạo tài khoản mới</h3>
+                        <p class="mb-0">Tham gia cộng đồng CNTT ngay hôm nay</p>
                     </div>
                     <div class="register-body">
                         <div th:if="${error}" class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}">Loi</span>
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}">Lỗi</span>
                         </div>
                         <form th:action="@{/dang-ky}" method="post">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label"><i class="bi bi-person me-1"></i>Ten dang nhap</label>
-                                    <input type="text" name="tendangnhap" class="form-control" placeholder="Nhap ten dang nhap" required>
+                                    <label class="form-label"><i class="bi bi-person me-1"></i>Tên đăng nhập</label>
+                                    <input type="text" name="tendangnhap" class="form-control" placeholder="Nhập tên đăng nhập" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label"><i class="bi bi-envelope me-1"></i>Email</label>
-                                    <input type="email" name="email" class="form-control" placeholder="Nhap email" required>
+                                    <input type="email" name="email" class="form-control" placeholder="Nhập email" required>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label"><i class="bi bi-person-badge me-1"></i>Ho va ten</label>
-                                <input type="text" name="hoten" class="form-control" placeholder="Nhap ho va ten" required>
+                                <label class="form-label"><i class="bi bi-person-badge me-1"></i>Họ và tên</label>
+                                <input type="text" name="hoten" class="form-control" placeholder="Nhập họ và tên" required>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label"><i class="bi bi-lock me-1"></i>Mat khau</label>
-                                    <input type="password" name="matkhau" class="form-control" placeholder="Nhap mat khau" required>
+                                    <label class="form-label"><i class="bi bi-lock me-1"></i>Mật khẩu</label>
+                                    <input type="password" name="matkhau" class="form-control" placeholder="Nhập mật khẩu" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label"><i class="bi bi-lock-fill me-1"></i>Xac nhan mat khau</label>
-                                    <input type="password" name="xacnhanmatkhau" class="form-control" placeholder="Nhap lai mat khau" required>
+                                    <label class="form-label"><i class="bi bi-lock-fill me-1"></i>Xác nhận mật khẩu</label>
+                                    <input type="password" name="xacnhanmatkhau" class="form-control" placeholder="Nhập lại mật khẩu" required>
                                 </div>
                             </div>
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="agree" name="agree" required>
-                                <label class="form-check-label" for="agree">Toi dong y voi <a href="#" class="text-primary">dieu khoan su dung</a></label>
+                                <label class="form-check-label" for="agree">Tôi đồng ý với <a href="#" class="text-primary">điều khoản sử dụng</a></label>
                             </div>
                             <button type="submit" class="btn btn-primary btn-register w-100 mb-3">
-                                <i class="bi bi-person-plus me-2"></i>Dang ky
+                                <i class="bi bi-person-plus me-2"></i>Đăng ký
                             </button>
                         </form>
                         <div class="text-center">
-                            <p class="mb-2">Da co tai khoan? <a th:href="@{/dang-nhap}" class="text-primary">Dang nhap ngay</a></p>
-                            <a th:href="@{/}" class="text-muted"><i class="bi bi-arrow-left me-1"></i>Ve trang chu</a>
+                            <p class="mb-2">Đã có tài khoản? <a th:href="@{/dang-nhap}" class="text-primary">Đăng nhập ngay</a></p>
+                            <a th:href="@{/}" class="text-muted"><i class="bi bi-arrow-left me-1"></i>Về trang chủ</a>
                         </div>
                     </div>
                 </div>

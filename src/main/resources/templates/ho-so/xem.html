@@ -60,10 +60,39 @@
                             <a th:href="@{/ho-so/chinh-sua}" class="btn btn-primary w-100"><i class="bi bi-pencil-square me-1"></i>Chỉnh sửa hồ sơ</a>
                         </div>
                     </div>
+                    <!-- Thống kê -->
                     <div class="sidebar-card mt-4 text-center">
                         <div class="row">
                             <div class="col"><div class="h3 text-primary" th:text="${tongCauHoi}">0</div><small class="text-secondary">Câu hỏi</small></div>
                             <div class="col"><div class="h3 text-success" th:text="${tongTraLoi}">0</div><small class="text-secondary">Trả lời</small></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cột phải: Hoạt động -->
+                <div class="col-md-8">
+                    <!-- Câu hỏi đã đăng -->
+                    <div class="sidebar-card mb-4">
+                        <h5 class="sidebar-title"><i class="bi bi-question-circle me-2 text-primary"></i>Câu hỏi đã đăng</h5>
+                        <div th:if="${cauHois != null && !cauHois.isEmpty()}">
+                            <div th:each="cauHoi, iter : ${cauHois}" th:if="${iter.index < 5}" class="d-flex align-items-start py-3 border-bottom">
+                                <div class="flex-grow-1">
+                                    <a th:href="@{/cau-hoi/{id}(id=${cauHoi.id})}" class="fw-semibold text-decoration-none d-block mb-1" th:text="${cauHoi.tieude}">Tiêu đề</a>
+                                    <div class="small text-secondary">
+                                        <span class="me-3"><i class="bi bi-eye me-1"></i><th:block th:text="${cauHoi.luotxem}">0</th:block> lượt xem</span>
+                                        <span class="me-3"><i class="bi bi-chat me-1"></i><th:block th:text="${cauHoi.soluongbinhluan}">0</th:block> trả lời</span>
+                                        <span><i class="bi bi-clock me-1"></i><th:block th:text="${#temporals.format(cauHoi.ngaydang, 'dd/MM/yyyy')}">Ngày</th:block></span>
+                                    </div>
+                                </div>
+                                <span class="badge bg-light text-dark" th:text="${cauHoi.chude?.tenchude}">Chủ đề</span>
+                            </div>
+                            <div th:if="${#lists.size(cauHois) > 5}" class="text-center mt-3">
+                                <a th:href="@{/ho-so/cau-hoi-cua-toi}" class="btn btn-outline-primary btn-sm">Xem tất cả <th:block th:text="${tongCauHoi}">0</th:block> câu hỏi</a>
+                            </div>
+                        </div>
+                        <div th:if="${cauHois == null || cauHois.isEmpty()}" class="text-center py-4 text-secondary">
+                            <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                            <p class="mb-0">Chưa có câu hỏi nào</p>
                         </div>
                     </div>
                 </div>

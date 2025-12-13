@@ -29,6 +29,9 @@ public class CauHoi {
     private LocalDateTime ngaydang = LocalDateTime.now();
     private LocalDateTime ngaycapnhat;
     private int luotxem = 0;
+    private Integer luotthich = 0;
+    private List<String> nguoiDaThich = new ArrayList<>(); // Danh sách manguoidung đã vote up
+    private List<String> nguoiKhongThich = new ArrayList<>(); // Danh sách manguoidung đã vote down
     private boolean daduocduyet = false;
     private int soluongbinhluan = 0;
     

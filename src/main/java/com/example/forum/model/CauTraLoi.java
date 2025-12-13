@@ -31,6 +31,9 @@ public class CauTraLoi {
     private String noidung;
     private LocalDateTime ngaytraloi = LocalDateTime.now();
     
+    // Ảnh đính kèm trong bình luận
+    private List<String> dinhkem;
+    
     // Trường mới cho nested comments
     @Indexed
     private String macautraloicha; // ID của bình luận cha (null nếu là bình luận gốc)

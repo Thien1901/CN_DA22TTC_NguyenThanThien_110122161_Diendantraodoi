@@ -16,17 +16,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
-    <!-- Quill Editor CSS for rich text replies -->
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <style>
         /* Nested Comments Styles */
-        .comment-item { background: var(--bg-card); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--accent); transition: all var(--transition-fast); }
-        .comment-item:hover { box-shadow: var(--shadow-md); }
+        .comment-item { background: var(--bg-sunken, #f8f9fa); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--border-default, #e5e7eb); transition: all 0.2s ease; }
+        .comment-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .comment-item .reply-form { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-200); }
         .comment-item .reply-form.show { display: block; animation: slideDown 0.3s ease; }
-        .comment-replies { margin-left: 2rem; margin-top: 1rem; padding-left: 1rem; border-left: 2px solid var(--gray-200); }
-        .comment-replies .comment-item { border-left-color: var(--primary); background: var(--bg-elevated); }
-        .btn-reply { font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; transition: color var(--transition-fast); }
+        .comment-replies { margin-left: 1.5rem; margin-top: 0.5rem; padding-left: 1rem; border-left: 3px solid var(--primary, #3b82f6); }
+        .comment-replies .comment-item { background: #fff; }
+        .btn-reply { font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; transition: color 0.2s ease; }
         .btn-reply:hover { color: var(--primary); }
         .mention-tag { background: rgba(0, 102, 255, 0.1); color: var(--primary); padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 500; }
         @media (max-width: 768px) { .comment-replies { margin-left: 1rem; } }
@@ -78,41 +76,7 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
     
-    <!-- Share Modal -->
-    <div class="modal fade share-modal" id="shareModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title"><i class="bi bi-share me-2"></i>Chia sẻ câu hỏi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="share-options">
-                        <div class="share-option facebook" onclick="shareToSocial('facebook')">
-                            <i class="bi bi-facebook"></i>
-                            <span>Facebook</span>
-                        </div>
-                        <div class="share-option twitter" onclick="shareToSocial('twitter')">
-                            <i class="bi bi-twitter-x"></i>
-                            <span>Twitter</span>
-                        </div>
-                        <div class="share-option linkedin" onclick="shareToSocial('linkedin')">
-                            <i class="bi bi-linkedin"></i>
-                            <span>LinkedIn</span>
-                        </div>
-                        <div class="share-option copy" onclick="copyShareUrl()">
-                            <i class="bi bi-link-45deg"></i>
-                            <span>Sao chép</span>
-                        </div>
-                    </div>
-                    <div class="share-url-box">
-                        <input type="text" id="shareUrl" readonly>
-                        <button class="btn btn-primary btn-sm" onclick="copyShareUrl()"><i class="bi bi-clipboard"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
@@ -166,19 +130,7 @@
             <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 
             <div class="question-card mb-4 animate-fadeIn">
-                <div class="d-flex">
-                    <!-- Voting Section -->
-                    <div class="vote-section d-none d-md-flex" th:if="${isLoggedIn}">
-                        <button class="vote-btn" id="upvoteBtn" onclick="vote('up')" data-tooltip="Hữu ích">
-                            <i class="bi bi-hand-thumbs-up"></i>
-                        </button>
-                        <span class="vote-count" id="voteCount" th:text="${cauHoi.luotthich != null ? cauHoi.luotthich : 0}">0</span>
-                        <button class="vote-btn" id="downvoteBtn" onclick="vote('down')" data-tooltip="Không hữu ích">
-                            <i class="bi bi-hand-thumbs-down"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="flex-grow-1">
+                <div>
                         <div class="mb-3"><a th:href="@{/chu-de/{ma}(ma=${cauHoi.chude?.machude})}" class="badge badge-category" th:text="${cauHoi.chude?.tenchude}">Chủ đề</a></div>
                         <h1 class="question-title mb-3" th:text="${cauHoi.tieude}">Tiêu đề câu hỏi</h1>
                         <div class="question-meta mb-4">
@@ -199,22 +151,11 @@
                         
                         <!-- Question Actions Bar -->
                         <div class="question-actions">
-                            <!-- Mobile Voting -->
-                            <div class="d-flex align-items-center gap-2 d-md-none" th:if="${isLoggedIn}">
-                                <button class="action-btn" id="upvoteBtnMobile" onclick="vote('up')"><i class="bi bi-hand-thumbs-up"></i><span id="voteCountMobile" th:text="${cauHoi.luotthich != null ? cauHoi.luotthich : 0}">0</span></button>
-                                <button class="action-btn" id="downvoteBtnMobile" onclick="vote('down')"><i class="bi bi-hand-thumbs-down"></i></button>
-                            </div>
-                            
-                            <!-- Share Button -->
-                            <button class="action-btn" onclick="openShareModal()"><i class="bi bi-share"></i><span class="d-none d-sm-inline">Chia sẻ</span></button>
-                            
-                            <!-- Bookmark Button -->
-                            <button class="action-btn bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()" th:if="${isLoggedIn}"><i class="bi bi-bookmark"></i><span class="d-none d-sm-inline">Lưu</span></button>
-                            
-                            <!-- Report Button -->
-                            <button class="action-btn" onclick="reportQuestion()" th:if="${isLoggedIn}"><i class="bi bi-flag"></i><span class="d-none d-sm-inline">Báo cáo</span></button>
-                            
                             <div class="ms-auto d-flex gap-2">
+                                <!-- Report button (for logged-in users, not owner) -->
+                                <button th:if="${isLoggedIn and !isOwner}" class="action-btn" onclick="openReportModal('CAU_HOI')" title="Báo cáo câu hỏi">
+                                    <i class="bi bi-flag"></i><span class="d-none d-sm-inline">Báo cáo</span>
+                                </button>
                                 <!-- Edit/Delete for Owner or Admin -->
                                 <th:block th:if="${isOwner or isAdmin}">
                                     <a th:href="@{/cau-hoi/{id}/sua(id=${cauHoi.id})}" class="action-btn"><i class="bi bi-pencil"></i><span class="d-none d-sm-inline">Sửa</span></a>
@@ -226,12 +167,13 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <h5 class="mb-4 fw-semibold"><i class="bi bi-chat-dots me-2 text-primary"></i>Câu trả lời (<span th:text="${cauHoi.soluongbinhluan}">0</span>)</h5>
-            
-            <!-- Comments List with Nested Replies -->
-            <div th:if="${cauTraLois != null && !cauTraLois.isEmpty()}" id="comments-container">
+                
+                <hr class="my-4">
+                
+                <h5 class="fw-semibold mb-4"><i class="bi bi-chat-dots me-2 text-primary"></i>Câu trả lời (<span th:text="${cauHoi.soluongbinhluan}">0</span>)</h5>
+                
+                <!-- Comments List with Nested Replies -->
+                <div th:if="${cauTraLois != null && !cauTraLois.isEmpty()}" id="comments-container">
                 <th:block th:each="traloi : ${cauTraLois}">
                     <!-- Parent Comment -->
                     <div class="comment-item" th:id="'comment-' + ${traloi.macautraloi}">
@@ -246,7 +188,14 @@
                                         <small class="text-secondary ms-2" th:if="${traloi.ngaytraloi != null}" th:text="${#temporals.format(traloi.ngaytraloi, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
                                     </div>
                                 </div>
-                                <p class="mt-2 mb-2" th:text="${traloi.noidung}">Nội dung trả lời</p>
+                                <div class="mt-2 mb-2 comment-content" th:utext="${traloi.noidung}">Nội dung trả lời</div>
+                                
+                                <!-- Ảnh đính kèm -->
+                                <div th:if="${traloi.dinhkem != null && !traloi.dinhkem.isEmpty()}" class="d-flex flex-wrap gap-2 mb-2">
+                                    <a th:each="img : ${traloi.dinhkem}" th:href="@{${img}}" target="_blank">
+                                        <img th:src="@{${img}}" class="rounded" style="max-width:150px;max-height:150px;object-fit:cover;" alt="Ảnh đính kèm">
+                                    </a>
+                                </div>
                                 
                                 <!-- Reply button (only for logged-in users) -->
                                 <div class="d-flex gap-3" th:if="${isLoggedIn}">
@@ -270,7 +219,7 @@
                             </div>
                         </div>
                         
-                        <!-- Nested Replies (Child Comments) -->
+                        <!-- Nested Replies (Child Comments) - Chỉ hiển thị, không cho reply tiếp -->
                         <div th:if="${traloi.cacTraLoiCon != null && !traloi.cacTraLoiCon.isEmpty()}" class="comment-replies">
                             <th:block th:each="traloiCon : ${traloi.cacTraLoiCon}">
                                 <div class="comment-item" th:id="'comment-' + ${traloiCon.macautraloi}">
@@ -289,27 +238,7 @@
                                                     <small class="text-secondary ms-2" th:if="${traloiCon.ngaytraloi != null}" th:text="${#temporals.format(traloiCon.ngaytraloi, 'dd/MM/yyyy HH:mm')}">Thời gian</small>
                                                 </div>
                                             </div>
-                                            <p class="mt-2 mb-2" th:text="${traloiCon.noidung}">Nội dung trả lời</p>
-                                            
-                                            <!-- Reply button for nested comments -->
-                                            <div class="d-flex gap-3" th:if="${isLoggedIn}">
-                                                <span class="btn-reply" th:data-id="${traloiCon.macautraloi}" onclick="toggleReplyForm(this.getAttribute('data-id'))">
-                                                    <i class="bi bi-reply me-1"></i>Trả lời
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- Reply Form for nested comments -->
-                                            <div class="reply-form" th:id="'reply-form-' + ${traloiCon.macautraloi}" th:if="${isLoggedIn}">
-                                                <form th:action="@{/cau-hoi/{cauhoiId}/tra-loi/{traloiId}/phan-hoi(cauhoiId=${cauHoi.id}, traloiId=${traloiCon.macautraloi})}" method="post">
-                                                    <div class="mb-2">
-                                                        <textarea name="noidung" class="form-control" rows="2" th:placeholder="'Trả lời ' + ${traloiCon.tennguoidung} + '...'" required></textarea>
-                                                    </div>
-                                                    <div class="d-flex gap-2">
-                                                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i>Gửi</button>
-                                                        <button type="button" class="btn btn-secondary btn-sm" th:data-id="${traloiCon.macautraloi}" onclick="toggleReplyForm(this.getAttribute('data-id'))">Hủy</button>
-                                                    </div>
-                                                </form>
-                                            </div>
+                                            <div class="mt-2 mb-2 comment-content" th:utext="${traloiCon.noidung}">Nội dung trả lời</div>
                                         </div>
                                     </div>
                                 </div>
@@ -317,33 +246,74 @@
                         </div>
                     </div>
                 </th:block>
-            </div>
-            
-            <!-- Empty State -->
-            <div th:if="${cauTraLois == null || cauTraLois.isEmpty()}" class="text-center py-5"><i class="bi bi-chat display-1 text-muted"></i><p class="text-muted mt-3">Chưa có câu trả lời nào. Hãy là người đầu tiên!</p></div>
-
-            <div class="sidebar-card mt-4 animate-fadeIn" th:if="${isLoggedIn}">
-                <h5 class="sidebar-title"><i class="bi bi-reply me-2"></i>Viết câu trả lời</h5>
-                <form th:action="@{/cau-hoi/{id}/tra-loi(id=${cauHoi.id})}" method="post" id="answerForm">
-                    <div class="mb-3 answer-editor">
-                        <div id="answerEditor"></div>
-                        <textarea name="noidung" id="answerContent" style="display:none;" required></textarea>
+                </div>
+                
+                <!-- Empty State -->
+                <div th:if="${cauTraLois == null || cauTraLois.isEmpty()}" class="text-center py-4"><i class="bi bi-chat display-4 text-muted"></i><p class="text-muted mt-3">Chưa có câu trả lời nào. Hãy là người đầu tiên!</p></div>
+                
+                <hr class="my-4" th:if="${isLoggedIn}">
+                
+                <!-- Form viết câu trả lời -->
+                <div th:if="${isLoggedIn}" class="row">
+                    <div class="col-lg-8">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-reply me-2 text-primary"></i>Viết câu trả lời</h5>
+                        <form th:action="@{/cau-hoi/{id}/tra-loi(id=${cauHoi.id})}" method="post">
+                            <div class="mb-3">
+                                <textarea name="noidung" class="form-control" rows="2" placeholder="Nhập câu trả lời của bạn..."></textarea>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-cta"><i class="bi bi-send me-2"></i>Gửi trả lời</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Hỗ trợ định dạng: <strong>đậm</strong>, <em>nghiêng</em>, code, link...</small>
-                        <button type="submit" class="btn btn-cta" id="submitAnswerBtn"><i class="bi bi-send me-2"></i>Gửi trả lời</button>
-                    </div>
-                </form>
-            </div>
-            <div class="sidebar-card mt-4 text-center" th:if="${!isLoggedIn}">
-                <p class="text-secondary mb-2">Vui lòng đăng nhập để trả lời câu hỏi</p>
-                <a th:href="@{/dang-nhap}" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập</a>
+                </div>
+                <div th:if="${!isLoggedIn}" class="text-center py-3">
+                    <p class="text-secondary mb-2">Vui lòng đăng nhập để trả lời câu hỏi</p>
+                    <a th:href="@{/dang-nhap}" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập</a>
+                </div>
             </div>
         </div>
     </main>
+    <!-- Modal Báo cáo -->
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-flag me-2 text-warning"></i>Báo cáo nội dung</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reportForm">
+                        <input type="hidden" id="reportType" name="loaiDoiTuong">
+                        <input type="hidden" id="reportTargetId" name="maDoiTuong" th:value="${cauHoi.id}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Lý do báo cáo <span class="text-danger">*</span></label>
+                            <select class="form-select" id="reportReason" name="lyDo" required>
+                                <option value="">-- Chọn lý do --</option>
+                                <option value="SPAM">Spam / Quảng cáo</option>
+                                <option value="NOI_DUNG_KHONG_PHU_HOP">Nội dung không phù hợp</option>
+                                <option value="NGON_TU_XUC_PHAM">Ngôn từ xúc phạm</option>
+                                <option value="THONG_TIN_SAI_LECH">Thông tin sai lệch</option>
+                                <option value="VI_PHAM_BAN_QUYEN">Vi phạm bản quyền</option>
+                                <option value="KHAC">Lý do khác</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mô tả chi tiết</label>
+                            <textarea class="form-control" id="reportDescription" name="moTa" rows="3" placeholder="Mô tả thêm về vấn đề bạn gặp phải..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning" onclick="submitReport()"><i class="bi bi-send me-1"></i>Gửi báo cáo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer"><div class="container"><div class="row g-4"><div class="col-lg-5"><h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5><p>Nền tảng trao đổi kiến thức chuyên ngành dành cho sinh viên và giảng viên.</p></div><div class="col-lg-3"><h6>Liên kết nhanh</h6><ul class="list-unstyled"><li><a th:href="@{/}">Trang chủ</a></li><li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li></ul></div><div class="col-lg-4"><h6>Thông tin dự án</h6><ul class="list-unstyled"><li>SV: Nguyễn Thanh Thiên</li><li>MSSV: 110122161</li><li>Lớp: DA22TTC</li></ul></div></div><hr><p class="text-center mb-0">© 2025 Diễn đàn CNTT</p></div></footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
     <script th:inline="javascript">
     // Toast System
     function showToast(type, title, message, duration = 5000) {
@@ -368,132 +338,33 @@
         }
     }
     
-    // Voting System
+    // Question ID
     const questionId = /*[[${cauHoi.id}]]*/ '';
-    let currentVote = null;
     
-    function vote(type) {
-        fetch('/cau-hoi/' + questionId + '/vote?type=' + type, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('voteCount').textContent = data.voteCount;
-                    const mobileCount = document.getElementById('voteCountMobile');
-                    if (mobileCount) mobileCount.textContent = data.voteCount;
-                    
-                    // Update button states
-                    const upBtn = document.getElementById('upvoteBtn');
-                    const downBtn = document.getElementById('downvoteBtn');
-                    const upBtnMobile = document.getElementById('upvoteBtnMobile');
-                    const downBtnMobile = document.getElementById('downvoteBtnMobile');
-                    
-                    [upBtn, upBtnMobile].forEach(btn => {
-                        if (btn) btn.classList.toggle('upvoted', data.userVote === 'up');
-                    });
-                    [downBtn, downBtnMobile].forEach(btn => {
-                        if (btn) btn.classList.toggle('downvoted', data.userVote === 'down');
-                    });
-                    
-                    showToast('success', 'Thành công', type === 'up' ? 'Đã thích câu hỏi' : 'Đã bỏ thích câu hỏi');
-                } else {
-                    showToast('error', 'Lỗi', data.message || 'Không thể thực hiện');
+    // Image Preview for Answer
+    const answerFiles = document.getElementById('answerFiles');
+    const imagePreview = document.getElementById('imagePreview');
+    if (answerFiles && imagePreview) {
+        answerFiles.addEventListener('change', function() {
+            imagePreview.innerHTML = '';
+            Array.from(this.files).forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'position-relative';
+                        div.innerHTML = '<img src="' + e.target.result + '" class="rounded" style="width:80px;height:80px;object-fit:cover;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="padding:0 4px;font-size:10px;" onclick="removeImage(' + index + ')"><i class="bi bi-x"></i></button>';
+                        imagePreview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
                 }
-            })
-            .catch(() => {
-                showToast('error', 'Lỗi', 'Vui lòng đăng nhập để vote');
             });
-    }
-    
-    // Share Modal
-    function openShareModal() {
-        document.getElementById('shareUrl').value = window.location.href;
-        new bootstrap.Modal(document.getElementById('shareModal')).show();
-    }
-    
-    function shareToSocial(platform) {
-        const url = encodeURIComponent(window.location.href);
-        const title = encodeURIComponent(document.title);
-        let shareUrl = '';
-        
-        switch(platform) {
-            case 'facebook':
-                shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + url;
-                break;
-            case 'twitter':
-                shareUrl = 'https://twitter.com/intent/tweet?url=' + url + '&text=' + title;
-                break;
-            case 'linkedin':
-                shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
-                break;
-        }
-        
-        if (shareUrl) {
-            window.open(shareUrl, '_blank', 'width=600,height=400');
-        }
-        bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
-    }
-    
-    function copyShareUrl() {
-        const url = document.getElementById('shareUrl');
-        url.select();
-        navigator.clipboard.writeText(url.value).then(() => {
-            showToast('success', 'Đã sao chép', 'Link đã được sao chép vào clipboard');
-            bootstrap.Modal.getInstance(document.getElementById('shareModal'))?.hide();
         });
     }
     
-    // Bookmark
-    let isBookmarked = false;
-    function toggleBookmark() {
-        isBookmarked = !isBookmarked;
-        const btn = document.getElementById('bookmarkBtn');
-        if (btn) {
-            btn.classList.toggle('bookmarked', isBookmarked);
-            btn.querySelector('i').className = isBookmarked ? 'bi bi-bookmark-fill' : 'bi bi-bookmark';
-        }
-        showToast('success', isBookmarked ? 'Đã lưu' : 'Đã bỏ lưu', isBookmarked ? 'Câu hỏi đã được lưu vào danh sách của bạn' : 'Đã xóa khỏi danh sách lưu');
-    }
-    
-    // Report
-    function reportQuestion() {
-        if (confirm('Bạn có muốn báo cáo câu hỏi này vi phạm quy định?')) {
-            showToast('info', 'Đã gửi báo cáo', 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét sớm nhất.');
-        }
-    }
-    
-    // Initialize Quill Editor for Answer
-    const answerEditorEl = document.getElementById('answerEditor');
-    if (answerEditorEl) {
-        const answerQuill = new Quill('#answerEditor', {
-            theme: 'snow',
-            placeholder: 'Nhập câu trả lời của bạn...',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    ['code-block', 'blockquote'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link'],
-                    ['clean']
-                ]
-            }
-        });
-        
-        answerQuill.on('text-change', function() {
-            const html = answerQuill.root.innerHTML;
-            const text = answerQuill.getText().trim();
-            document.getElementById('answerContent').value = text.length > 0 ? html : '';
-        });
-        
-        document.getElementById('answerForm')?.addEventListener('submit', function(e) {
-            const content = answerQuill.getText().trim();
-            if (content.length < 10) {
-                e.preventDefault();
-                showToast('error', 'Lỗi', 'Câu trả lời phải có ít nhất 10 ký tự');
-                return;
-            }
-            document.getElementById('submitAnswerBtn').classList.add('btn-loading');
-        });
-    }
+    document.getElementById('answerForm')?.addEventListener('submit', function(e) {
+        document.getElementById('submitAnswerBtn')?.classList.add('btn-loading');
+    });
     
     // Notification scripts
     let allNotifications=[],currentFilter='all';
@@ -505,6 +376,45 @@
     function markAllAsRead(e){e.preventDefault();fetch('/thong-bao/api/doc-tat-ca',{method:'POST'}).then(()=>{loadNotifications();loadNotificationCount()})}
     function formatTimeAgo(d){const s=Math.floor((new Date()-new Date(d))/1000);if(s<60)return'Vừa xong';if(s<3600)return Math.floor(s/60)+' phút trước';if(s<86400)return Math.floor(s/3600)+' giờ trước';if(s<604800)return Math.floor(s/86400)+' ngày trước';return new Date(d).toLocaleDateString('vi-VN')}
     document.getElementById('notificationDropdown')?.addEventListener('show.bs.dropdown',loadNotifications);
+    
+    // Report functions
+    function openReportModal(type) {
+        document.getElementById('reportType').value = type;
+        document.getElementById('reportReason').value = '';
+        document.getElementById('reportDescription').value = '';
+        new bootstrap.Modal(document.getElementById('reportModal')).show();
+    }
+    
+    async function submitReport() {
+        const loaiDoiTuong = document.getElementById('reportType').value;
+        const maDoiTuong = document.getElementById('reportTargetId').value;
+        const lyDo = document.getElementById('reportReason').value;
+        const moTa = document.getElementById('reportDescription').value;
+        
+        if (!lyDo) {
+            showToast('warning', 'Thiếu thông tin', 'Vui lòng chọn lý do báo cáo');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/bao-cao/gui', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loaiDoiTuong, maDoiTuong, lyDo, moTa })
+            });
+            const data = await response.json();
+            
+            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+            
+            if (data.success) {
+                showToast('success', 'Thành công', data.message);
+            } else {
+                showToast('error', 'Lỗi', data.message);
+            }
+        } catch (error) {
+            showToast('error', 'Lỗi', 'Có lỗi xảy ra khi gửi báo cáo');
+        }
+    }
     </script>
 </body>
 </html>

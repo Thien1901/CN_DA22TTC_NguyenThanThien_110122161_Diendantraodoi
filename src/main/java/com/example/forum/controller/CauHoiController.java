@@ -8,9 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,6 +87,21 @@ public class CauHoiController {
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("isLoggedIn", isLoggedIn);
         
+        // Kiểm tra user đã vote chưa
+        String userVote = null;
+        if (authentication != null) {
+            Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
+            if (nguoiDungOpt.isPresent()) {
+                String manguoidung = nguoiDungOpt.get().getManguoidung();
+                if (cauHoi.getNguoiDaThich() != null && cauHoi.getNguoiDaThich().contains(manguoidung)) {
+                    userVote = "up";
+                } else if (cauHoi.getNguoiKhongThich() != null && cauHoi.getNguoiKhongThich().contains(manguoidung)) {
+                    userVote = "down";
+                }
+            }
+        }
+        model.addAttribute("userVote", userVote);
+        
         return "cau-hoi/chi-tiet";
     }
     
@@ -137,7 +156,7 @@ public class CauHoiController {
         cauHoi.setTennguoidung(nguoiDung.getHoten());
         cauHoi.setNgaydang(LocalDateTime.now());
         cauHoi.setNgaycapnhat(LocalDateTime.now());
-        cauHoi.setDaduocduyet(true); // Tự động duyệt câu hỏi
+        cauHoi.setDaduocduyet(false); // Cần admin duyệt trước khi hiển thị
         
         // Xử lý upload file
         List<String> dinhkemList = new ArrayList<>();
@@ -285,7 +304,7 @@ public class CauHoiController {
     @PostMapping("/{id}/tra-loi")
     public String traLoi(
             @PathVariable String id,
-            @RequestParam String noidung,
+            @RequestParam(required = false) String noidung,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         
@@ -308,7 +327,7 @@ public class CauHoiController {
         NguoiDung nguoiDung = nguoiDungOpt.get();
         
         CauTraLoi cauTraLoi = new CauTraLoi();
-        cauTraLoi.setMacauhoi(cauHoi.getId()); // Lưu ID câu hỏi
+        cauTraLoi.setMacauhoi(cauHoi.getId());
         cauTraLoi.setManguoidung(nguoiDung.getManguoidung());
         cauTraLoi.setTennguoidung(nguoiDung.getHoten());
         cauTraLoi.setAnhdaidien(nguoiDung.getAnhdaidien());
@@ -468,5 +487,87 @@ public class CauHoiController {
         }
         
         return "redirect:/cau-hoi/" + cauhoiId;
+    }
+    
+    /**
+     * API Vote câu hỏi (hữu ích / không hữu ích)
+     */
+    @PostMapping("/{id}/vote")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> voteCauHoi(
+            @PathVariable String id,
+            @RequestParam String type,
+            Authentication authentication) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        if (authentication == null) {
+            response.put("success", false);
+            response.put("message", "Vui lòng đăng nhập để vote");
+            return ResponseEntity.ok(response);
+        }
+        
+        Optional<CauHoi> cauHoiOpt = cauHoiService.timTheoId(id);
+        if (cauHoiOpt.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Không tìm thấy câu hỏi");
+            return ResponseEntity.ok(response);
+        }
+        
+        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
+        if (nguoiDungOpt.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Không tìm thấy người dùng");
+            return ResponseEntity.ok(response);
+        }
+        
+        CauHoi cauHoi = cauHoiOpt.get();
+        String manguoidung = nguoiDungOpt.get().getManguoidung();
+        
+        // Khởi tạo list nếu null
+        if (cauHoi.getNguoiDaThich() == null) {
+            cauHoi.setNguoiDaThich(new ArrayList<>());
+        }
+        if (cauHoi.getNguoiKhongThich() == null) {
+            cauHoi.setNguoiKhongThich(new ArrayList<>());
+        }
+        
+        String userVote = null;
+        
+        if ("up".equals(type)) {
+            if (cauHoi.getNguoiDaThich().contains(manguoidung)) {
+                // Đã vote up -> bỏ vote
+                cauHoi.getNguoiDaThich().remove(manguoidung);
+                userVote = null;
+            } else {
+                // Vote up
+                cauHoi.getNguoiDaThich().add(manguoidung);
+                cauHoi.getNguoiKhongThich().remove(manguoidung); // Bỏ vote down nếu có
+                userVote = "up";
+            }
+        } else if ("down".equals(type)) {
+            if (cauHoi.getNguoiKhongThich().contains(manguoidung)) {
+                // Đã vote down -> bỏ vote
+                cauHoi.getNguoiKhongThich().remove(manguoidung);
+                userVote = null;
+            } else {
+                // Vote down
+                cauHoi.getNguoiKhongThich().add(manguoidung);
+                cauHoi.getNguoiDaThich().remove(manguoidung); // Bỏ vote up nếu có
+                userVote = "down";
+            }
+        }
+        
+        // Tính lại số vote
+        int voteCount = cauHoi.getNguoiDaThich().size() - cauHoi.getNguoiKhongThich().size();
+        cauHoi.setLuotthich(voteCount);
+        
+        cauHoiService.luu(cauHoi);
+        
+        response.put("success", true);
+        response.put("voteCount", voteCount);
+        response.put("userVote", userVote);
+        
+        return ResponseEntity.ok(response);
     }
 }
