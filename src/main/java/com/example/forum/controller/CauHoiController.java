@@ -78,8 +78,12 @@ public class CauHoiController {
         boolean isAdmin = false;
         boolean isLoggedIn = authentication != null;
         if (authentication != null) {
-            String currentUserId = authentication.getName();
-            isOwner = currentUserId.equals(cauHoi.getManguoidung());
+            // Lấy manguoidung từ tendangnhap
+            Optional<NguoiDung> currentUserOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
+            if (currentUserOpt.isPresent()) {
+                String currentUserId = currentUserOpt.get().getManguoidung();
+                isOwner = currentUserId.equals(cauHoi.getManguoidung());
+            }
             isAdmin = authentication.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         }
@@ -305,6 +309,7 @@ public class CauHoiController {
     public String traLoi(
             @PathVariable String id,
             @RequestParam(required = false) String noidung,
+            @RequestParam(required = false) List<MultipartFile> hinhAnh,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         
@@ -334,6 +339,35 @@ public class CauHoiController {
         cauTraLoi.setNoidung(noidung);
         cauTraLoi.setNgaytraloi(LocalDateTime.now());
         
+        // Upload hình ảnh đính kèm
+        List<String> dinhKemList = new ArrayList<>();
+        if (hinhAnh != null && !hinhAnh.isEmpty()) {
+            try {
+                Path uploadDir = Paths.get(uploadPath, "comments");
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
+                }
+                for (MultipartFile file : hinhAnh) {
+                    if (!file.isEmpty() && file.getContentType() != null && file.getContentType().startsWith("image/")) {
+                        String extension = "";
+                        String originalFilename = file.getOriginalFilename();
+                        if (originalFilename != null && originalFilename.contains(".")) {
+                            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                        }
+                        String newFilename = UUID.randomUUID().toString() + extension;
+                        Path filePath = uploadDir.resolve(newFilename);
+                        Files.copy(file.getInputStream(), filePath);
+                        dinhKemList.add("/uploads/comments/" + newFilename);
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Lỗi upload ảnh bình luận: " + e.getMessage());
+            }
+        }
+        if (!dinhKemList.isEmpty()) {
+            cauTraLoi.setDinhkem(dinhKemList);
+        }
+        
         cauTraLoiService.luu(cauTraLoi);
         
         // Cập nhật số bình luận
@@ -358,9 +392,8 @@ public class CauHoiController {
             );
         }
         
-        redirectAttributes.addFlashAttribute("success", "Đã gửi câu trả lời!");
-        
-        return "redirect:/cau-hoi/" + id;
+        // Redirect về comment mới tạo với query param để hiện toast
+        return "redirect:/cau-hoi/" + id + "?commented=1#comment-" + cauTraLoi.getMacautraloi();
     }
     
     /**
@@ -371,6 +404,7 @@ public class CauHoiController {
             @PathVariable String cauhoiId,
             @PathVariable String traloiId,
             @RequestParam String noidung,
+            @RequestParam(required = false) List<MultipartFile> hinhAnh,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         
@@ -401,6 +435,12 @@ public class CauHoiController {
         
         NguoiDung nguoiDung = nguoiDungOpt.get();
         
+        // Xác định bình luận gốc (root comment)
+        String rootCommentId = binhLuanCha.getMacautraloicha();
+        if (rootCommentId == null || rootCommentId.isEmpty()) {
+            rootCommentId = traloiId;
+        }
+        
         // Tạo bình luận con
         CauTraLoi binhLuanCon = new CauTraLoi();
         binhLuanCon.setMacauhoi(cauhoiId);
@@ -409,7 +449,36 @@ public class CauHoiController {
         binhLuanCon.setAnhdaidien(nguoiDung.getAnhdaidien());
         binhLuanCon.setNoidung(noidung);
         binhLuanCon.setNgaytraloi(LocalDateTime.now());
-        binhLuanCon.setMacautraloicha(traloiId); // Link đến bình luận cha
+        binhLuanCon.setMacautraloicha(rootCommentId);
+        
+        // Upload hình ảnh đính kèm
+        List<String> dinhKemList = new ArrayList<>();
+        if (hinhAnh != null && !hinhAnh.isEmpty()) {
+            try {
+                Path uploadDir = Paths.get(uploadPath, "comments");
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
+                }
+                for (MultipartFile file : hinhAnh) {
+                    if (!file.isEmpty() && file.getContentType() != null && file.getContentType().startsWith("image/")) {
+                        String extension = "";
+                        String originalFilename = file.getOriginalFilename();
+                        if (originalFilename != null && originalFilename.contains(".")) {
+                            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                        }
+                        String newFilename = UUID.randomUUID().toString() + extension;
+                        Path filePath = uploadDir.resolve(newFilename);
+                        Files.copy(file.getInputStream(), filePath);
+                        dinhKemList.add("/uploads/comments/" + newFilename);
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Lỗi upload ảnh bình luận: " + e.getMessage());
+            }
+        }
+        if (!dinhKemList.isEmpty()) {
+            binhLuanCon.setDinhkem(dinhKemList);
+        }
         binhLuanCon.setTenNguoiDuocTraLoi(binhLuanCha.getTennguoidung()); // Lưu tên người được reply
         
         cauTraLoiService.luu(binhLuanCon);
@@ -454,9 +523,8 @@ public class CauHoiController {
             );
         }
         
-        redirectAttributes.addFlashAttribute("success", "Đã gửi phản hồi!");
-        
-        return "redirect:/cau-hoi/" + cauhoiId;
+        // Redirect về comment cha với query param để hiện toast
+        return "redirect:/cau-hoi/" + cauhoiId + "?replied=1#comment-" + rootCommentId;
     }
 
     @PostMapping("/{cauhoiId}/tra-loi/{id}/xoa")
@@ -481,12 +549,12 @@ public class CauHoiController {
                     cauTraLoiService.xoa(id);
                     long soBinhLuan = cauTraLoiService.demTheoCauHoi(cauhoiId);
                     cauHoiService.capNhatSoBinhLuan(cauhoiId, (int) soBinhLuan);
-                    redirectAttributes.addFlashAttribute("success", "Đã xóa câu trả lời!");
+                    return "redirect:/cau-hoi/" + cauhoiId + "?deleted=1#comments-container";
                 }
             }
         }
         
-        return "redirect:/cau-hoi/" + cauhoiId;
+        return "redirect:/cau-hoi/" + cauhoiId + "#comments-container";
     }
     
     /**

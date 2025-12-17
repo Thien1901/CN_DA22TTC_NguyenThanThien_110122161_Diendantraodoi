@@ -7,78 +7,76 @@ import com.example.forum.service.ThongBaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-@Controller
-@RequestMapping("/thong-bao")
+@RestController
+@RequestMapping("/api/thong-bao")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class ThongBaoController {
-    
+
     private final ThongBaoService thongBaoService;
     private final NguoiDungService nguoiDungService;
-    
-    @GetMapping("/api/danh-sach")
-    @ResponseBody
-    public ResponseEntity<List<ThongBao>> layDanhSach(Authentication authentication) {
-        if (authentication == null) {
+
+    @GetMapping("/dem")
+    public ResponseEntity<Map<String, Object>> demChuaDoc(Authentication auth) {
+        Map<String, Object> res = new HashMap<>();
+        
+        if (auth == null) {
+            res.put("count", 0);
+            return ResponseEntity.ok(res);
+        }
+        
+        NguoiDung nd = nguoiDungService.timTheoTenDangNhap(auth.getName()).orElse(null);
+        if (nd == null) {
+            res.put("count", 0);
+            return ResponseEntity.ok(res);
+        }
+        
+        res.put("count", thongBaoService.demChuaDoc(nd.getManguoidung()));
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/danh-sach")
+    public ResponseEntity<List<ThongBao>> danhSach(Authentication auth) {
+        if (auth == null) {
             return ResponseEntity.ok(List.of());
         }
         
-        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
-        if (nguoiDungOpt.isEmpty()) {
+        NguoiDung nd = nguoiDungService.timTheoTenDangNhap(auth.getName()).orElse(null);
+        if (nd == null) {
             return ResponseEntity.ok(List.of());
         }
         
-        List<ThongBao> thongBaos = thongBaoService.layThongBao(nguoiDungOpt.get().getManguoidung());
-        return ResponseEntity.ok(thongBaos);
+        return ResponseEntity.ok(thongBaoService.layThongBao(nd.getManguoidung()));
     }
-    
-    @GetMapping("/api/dem-chua-doc")
-    @ResponseBody
-    public ResponseEntity<Map<String, Long>> demChuaDoc(Authentication authentication) {
-        Map<String, Long> result = new HashMap<>();
-        
-        if (authentication == null) {
-            result.put("count", 0L);
-            return ResponseEntity.ok(result);
-        }
-        
-        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
-        if (nguoiDungOpt.isEmpty()) {
-            result.put("count", 0L);
-            return ResponseEntity.ok(result);
-        }
-        
-        long count = thongBaoService.demChuaDoc(nguoiDungOpt.get().getManguoidung());
-        result.put("count", count);
-        return ResponseEntity.ok(result);
-    }
-    
-    @PostMapping("/api/doc/{id}")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> danhDauDaDoc(@PathVariable String id) {
+
+    @PostMapping("/doc/{id}")
+    public ResponseEntity<Map<String, Object>> danhDauDoc(@PathVariable String id) {
         thongBaoService.danhDauDaDoc(id);
-        Map<String, String> result = new HashMap<>();
-        result.put("status", "success");
-        return ResponseEntity.ok(result);
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        return ResponseEntity.ok(res);
     }
-    
-    @PostMapping("/api/doc-tat-ca")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> danhDauTatCaDaDoc(Authentication authentication) {
-        if (authentication != null) {
-            Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
-            nguoiDungOpt.ifPresent(nd -> thongBaoService.danhDauTatCaDaDoc(nd.getManguoidung()));
+
+    @PostMapping("/doc-tat-ca")
+    public ResponseEntity<Map<String, Object>> docTatCa(Authentication auth) {
+        Map<String, Object> res = new HashMap<>();
+        
+        if (auth == null) {
+            res.put("success", false);
+            return ResponseEntity.ok(res);
         }
-        Map<String, String> result = new HashMap<>();
-        result.put("status", "success");
-        return ResponseEntity.ok(result);
+        
+        NguoiDung nd = nguoiDungService.timTheoTenDangNhap(auth.getName()).orElse(null);
+        if (nd != null) {
+            thongBaoService.danhDauTatCaDaDoc(nd.getManguoidung());
+        }
+        
+        res.put("success", true);
+        return ResponseEntity.ok(res);
     }
 }

@@ -12,6 +12,7 @@
     <link th:href="@{/css/design-system.css}" rel="stylesheet">
     <!-- Admin CSS - Chỉnh sửa file admin.css để thay đổi tất cả trang -->
     <link rel="stylesheet" th:href="@{/css/admin.css}">
+
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
@@ -31,7 +32,9 @@
                     <a th:href="@{/admin}" class="sidebar-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
                     <a th:href="@{/admin/nguoi-dung}" class="sidebar-link"><i class="bi bi-people-fill me-2"></i>Người dùng</a>
                     <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-square-dots-fill me-2"></i>Câu hỏi</a>
-                    <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link active"><i class="bi bi-clock-history me-2"></i>Chờ duyệt</a>
+                    <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link active"><i class="bi bi-clock-history me-2"></i>Chờ duyệt<span th:if="${soCauHoiChoDuyet > 0}" class="badge bg-danger ms-auto" th:text="${soCauHoiChoDuyet}"></span></a>
+                    <a th:href="@{/admin/cau-hoi/da-tu-choi}" class="sidebar-link"><i class="bi bi-x-circle me-2"></i>Đã từ chối</a>
+                    <a th:href="@{/admin/bao-cao}" class="sidebar-link"><i class="bi bi-flag-fill me-2"></i>Báo cáo vi phạm<span th:if="${soBaoCaoChoXuLy > 0}" class="badge bg-danger ms-auto" th:text="${soBaoCaoChoXuLy}"></span></a>
                     <a th:href="@{/admin/chu-de}" class="sidebar-link"><i class="bi bi-folder-fill me-2"></i>Chủ đề</a>
                     <hr class="sidebar-divider">
                     <div class="sidebar-title">Điều hướng</div>
@@ -61,8 +64,42 @@
                                     <form th:action="@{/admin/cau-hoi/{id}/duyet(id=${ch.id})}" method="post" class="d-inline">
                                         <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg me-1"></i>Duyệt</button>
                                     </form>
-                                    <form th:action="@{/admin/cau-hoi/{id}/xoa(id=${ch.id})}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Xóa câu hỏi này?')"><i class="bi bi-trash me-1"></i>Xóa</button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="collapse" 
+                                            th:data-bs-target="'#tuChoiForm' + ${ch.id}">
+                                        <i class="bi bi-x-lg me-1"></i>Từ chối
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Form từ chối inline -->
+                            <div class="collapse mt-3" th:id="'tuChoiForm' + ${ch.id}">
+                                <div class="card card-body">
+                                    <form th:action="@{/admin/cau-hoi/{id}/tu-choi(id=${ch.id})}" method="post">
+                                        <label class="form-label fw-bold" style="color: #1f2937;">Chọn lý do từ chối:</label>
+                                        <div class="form-check mb-1">
+                                            <input class="form-check-input" type="radio" th:name="'lyDoChon' + ${ch.id}" th:id="'lyDo1_' + ${ch.id}" value="Nội dung không liên quan đến chủ đề CNTT" onchange="updateLyDo(this)">
+                                            <label class="form-check-label" th:for="'lyDo1_' + ${ch.id}" style="color: #1f2937;">Nội dung không liên quan đến chủ đề CNTT</label>
+                                        </div>
+                                        <div class="form-check mb-1">
+                                            <input class="form-check-input" type="radio" th:name="'lyDoChon' + ${ch.id}" th:id="'lyDo2_' + ${ch.id}" value="Câu hỏi trùng lặp với câu hỏi đã có" onchange="updateLyDo(this)">
+                                            <label class="form-check-label" th:for="'lyDo2_' + ${ch.id}" style="color: #1f2937;">Câu hỏi trùng lặp với câu hỏi đã có</label>
+                                        </div>
+                                        <div class="form-check mb-1">
+                                            <input class="form-check-input" type="radio" th:name="'lyDoChon' + ${ch.id}" th:id="'lyDo3_' + ${ch.id}" value="Nội dung vi phạm quy định cộng đồng" onchange="updateLyDo(this)">
+                                            <label class="form-check-label" th:for="'lyDo3_' + ${ch.id}" style="color: #1f2937;">Nội dung vi phạm quy định cộng đồng</label>
+                                        </div>
+                                        <div class="form-check mb-1">
+                                            <input class="form-check-input" type="radio" th:name="'lyDoChon' + ${ch.id}" th:id="'lyDo4_' + ${ch.id}" value="Câu hỏi không rõ ràng, thiếu thông tin" onchange="updateLyDo(this)">
+                                            <label class="form-check-label" th:for="'lyDo4_' + ${ch.id}" style="color: #1f2937;">Câu hỏi không rõ ràng, thiếu thông tin</label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" th:name="'lyDoChon' + ${ch.id}" th:id="'lyDo5_' + ${ch.id}" value="Nội dung spam hoặc quảng cáo" onchange="updateLyDo(this)">
+                                            <label class="form-check-label" th:for="'lyDo5_' + ${ch.id}" style="color: #1f2937;">Nội dung spam hoặc quảng cáo</label>
+                                        </div>
+                                        <input type="hidden" name="lyDoTuChoi" th:id="'lyDoTuChoi_' + ${ch.id}" required>
+                                        <div class="mt-2">
+                                            <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-lg me-1"></i>Xác nhận từ chối</button>
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="collapse" th:data-bs-target="'#tuChoiForm' + ${ch.id}">Hủy</button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -108,5 +145,12 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateLyDo(radio) {
+            var form = radio.closest('form');
+            var hiddenInput = form.querySelector('input[name="lyDoTuChoi"]');
+            hiddenInput.value = radio.value;
+        }
+    </script>
 </body>
 </html>

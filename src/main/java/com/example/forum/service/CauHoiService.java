@@ -31,7 +31,11 @@ public class CauHoiService {
     }
     
     public List<CauHoi> layCauHoiChoDuyet() {
-        return cauHoiRepository.findByDaduocduyet(false);
+        List<CauHoi> cauHois = cauHoiRepository.findByDaduocduyet(false);
+        // Lọc bỏ câu hỏi đã bị từ chối
+        return cauHois.stream()
+                .filter(ch -> ch.getTrangthai() == null || !ch.getTrangthai().equals("tuchoi"))
+                .toList();
     }
     
     public List<CauHoi> layMoiNhat(int soLuong) {
@@ -90,12 +94,29 @@ public class CauHoiService {
         });
     }
     
+    public void tuChoiCauHoi(@NonNull String id, String lyDoTuChoi) {
+        Optional<CauHoi> cauHoiOpt = cauHoiRepository.findById(id);
+        cauHoiOpt.ifPresent(cauHoi -> {
+            cauHoi.setTrangthai("tuchoi");
+            cauHoi.setLyDoTuChoi(lyDoTuChoi);
+            cauHoiRepository.save(cauHoi);
+        });
+    }
+    
+    public List<CauHoi> layCauHoiDaTuChoi() {
+        List<CauHoi> cauHois = cauHoiRepository.findAll(Sort.by(Sort.Direction.DESC, "ngaydang"));
+        return cauHois.stream()
+                .filter(ch -> "tuchoi".equals(ch.getTrangthai()))
+                .toList();
+    }
+    
     public void xoa(@NonNull String id) {
         cauHoiRepository.deleteById(id);
     }
     
     public long demChoDuyet() {
-        return cauHoiRepository.countByDaduocduyet(false);
+        // Đếm câu hỏi chờ duyệt (không bao gồm câu hỏi đã từ chối)
+        return layCauHoiChoDuyet().size();
     }
     
     public long dem() {

@@ -35,7 +35,7 @@ public class BaoCao {
     private LocalDateTime ngayBaoCao = LocalDateTime.now();
     
     @Indexed
-    private String trangThai = "CHUA_XU_LY"; // CHUA_XU_LY, DA_XU_LY, TU_CHOI
+    private String trangThai = "CHO_XU_LY"; // CHO_XU_LY, DA_XU_LY, TU_CHOI
     
     private String ghiChuAdmin; // Ghi chú của admin khi xử lý
     private LocalDateTime ngayXuLy;

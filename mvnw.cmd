@@ -36,6 +36,9 @@
 @echo off
 @REM set title of command window
 title %0
+
+@REM Set JAVA_HOME if not already set
+if "%JAVA_HOME%" == "" set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
 @REM enable echoing by setting MAVEN_BATCH_ECHO to 'on'
 @if "%MAVEN_BATCH_ECHO%" == "on"  echo %MAVEN_BATCH_ECHO%
 

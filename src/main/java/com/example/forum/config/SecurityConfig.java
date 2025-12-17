@@ -26,10 +26,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/thong-bao/api/**")
+                .ignoringRequestMatchers("/thong-bao/**", "/bao-cao/**", "/api/**")
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/cau-hoi/**", "/chuyen-nganh/**", "/chu-de/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/api/**").permitAll()
+                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/cau-hoi/**", "/chuyen-nganh/**", "/chu-de/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/**", "/bao-cao/**", "/api/**", "/tat-ca-cau-hoi").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

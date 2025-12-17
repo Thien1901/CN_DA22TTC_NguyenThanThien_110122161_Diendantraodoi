@@ -34,6 +34,8 @@ public class CauHoi {
     private List<String> nguoiKhongThich = new ArrayList<>(); // Danh sách manguoidung đã vote down
     private boolean daduocduyet = false;
     private int soluongbinhluan = 0;
+    private String trangthai = "choduyet"; // choduyet, daduyet, tuchoi
+    private String lyDoTuChoi;
     
     private List<String> dinhkem = new ArrayList<>();
     private ChuDe chude;

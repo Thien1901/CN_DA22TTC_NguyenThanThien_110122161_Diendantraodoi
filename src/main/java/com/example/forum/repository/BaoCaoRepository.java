@@ -12,4 +12,5 @@ public interface BaoCaoRepository extends MongoRepository<BaoCao, String> {
     List<BaoCao> findAllByOrderByNgayBaoCaoDesc();
     List<BaoCao> findByMaNguoiBaoCaoOrderByNgayBaoCaoDesc(String maNguoiBaoCao);
     boolean existsByMaNguoiBaoCaoAndMaDoiTuong(String maNguoiBaoCao, String maDoiTuong);
+    long countByTrangThai(String trangThai);
 }

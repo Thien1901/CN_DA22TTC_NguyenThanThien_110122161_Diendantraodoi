@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo - Diễn đàn CNTT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/design-system.css}" rel="stylesheet">
+    <style>
+        .notification-page-item { padding: 1rem; border-bottom: 1px solid var(--border-subtle, #e5e7eb); transition: background 0.2s; }
+        .notification-page-item:hover { background: var(--bg-sunken, #f8f9fa); }
+        .notification-page-item.unread { background: rgba(37, 99, 235, 0.05); border-left: 3px solid var(--primary, #2563eb); }
+        .notification-page-item .avatar { width: 48px; height: 48px; border-radius: 50%; }
+        .notification-time { font-size: 0.8rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}"><i class="bi bi-chat-square-text-fill"></i>Diễn đàn CNTT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><i class="bi bi-list"></i></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-house"></i>Trang chủ</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                            <span sec:authentication="name">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" th:href="@{/ho-so}"><i class="bi bi-person"></i>Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><form th:action="@{/dang-xuat}" method="post" class="m-0"><button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button></form></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-semibold mb-0">
+                            <i class="bi bi-bell me-2 text-primary"></i>Thông báo
+                            <span th:if="${soLuongChuaDoc > 0}" class="badge bg-danger ms-2" th:text="${soLuongChuaDoc}">0</span>
+                        </h4>
+                        <button class="btn btn-outline-primary btn-sm" onclick="markAllAsReadPage()">
+                            <i class="bi bi-check-all me-1"></i>Đánh dấu tất cả đã đọc
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <div th:if="${danhSachThongBao == null || danhSachThongBao.isEmpty()}" class="text-center py-5">
+                                <i class="bi bi-bell-slash display-4 text-muted"></i>
+                                <p class="text-muted mt-3">Chưa có thông báo nào</p>
+                            </div>
+                            
+                            <div th:each="tb : ${danhSachThongBao}" 
+                                 class="notification-page-item" 
+                                 th:classappend="${!tb.daDoc} ? 'unread' : ''"
+                                 th:data-id="${tb.id}">
+                                <a th:href="${tb.duongDan != null ? tb.duongDan : '#'}" 
+                                   class="d-flex text-decoration-none text-dark"
+                                   th:onclick="'markAsReadPage(\'' + ${tb.id} + '\')'">
+                                    <img th:src="${tb.avatarNguoiGui != null && !tb.avatarNguoiGui.isEmpty()} ? ${tb.avatarNguoiGui} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(tb.tenNguoiGui != null ? tb.tenNguoiGui : 'U', ' ', '+')}" 
+                                         class="avatar me-3" alt="Avatar">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold" th:text="${tb.tieuDe}">Tiêu đề</div>
+                                        <div class="text-muted small" th:text="${tb.noiDung}">Nội dung</div>
+                                        <div class="notification-time mt-1">
+                                            <i class="bi bi-clock me-1"></i>
+                                            <span th:text="${#temporals.format(tb.ngayTao, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
+                                        </div>
+                                    </div>
+                                    <span th:if="${!tb.daDoc}" class="badge bg-primary align-self-center">Mới</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="text-center mb-0">© 2025 Diễn đàn CNTT</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function markAsReadPage(id) {
+        fetch('/api/thong-bao/doc/' + id, { method: 'POST' });
+    }
+    
+    function markAllAsReadPage() {
+        fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
+            .then(() => location.reload());
+    }
+    </script>
+</body>
+</html>

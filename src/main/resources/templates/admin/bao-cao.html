@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý báo cáo - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/design-system.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%) !important;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        .content-card { background: var(--bg-base); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-md); }
+        .action-btn-group { display: flex; gap: 6px; }
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .action-btn-approve { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .action-btn-reject { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .action-btn-delete { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" th:href="@{/}"><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</a>
+            <div class="navbar-nav ms-auto">
+                <form th:action="@{/dang-xuat}" method="post"><button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button></form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 p-0 sidebar">
+                <div class="py-3">
+                    <div class="sidebar-title">Quản lý</div>
+                    <a th:href="@{/admin}" class="sidebar-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link"><i class="bi bi-people-fill me-2"></i>Người dùng</a>
+                    <a th:href="@{/admin/cau-hoi}" class="sidebar-link"><i class="bi bi-chat-square-dots-fill me-2"></i>Câu hỏi</a>
+                    <a th:href="@{/admin/cau-hoi/cho-duyet}" class="sidebar-link"><i class="bi bi-clock-history me-2"></i>Chờ duyệt<span th:if="${soCauHoiChoDuyet > 0}" class="badge bg-danger ms-auto" th:text="${soCauHoiChoDuyet}"></span></a>
+                    <a th:href="@{/admin/cau-hoi/da-tu-choi}" class="sidebar-link"><i class="bi bi-x-circle me-2"></i>Đã từ chối</a>
+                    <a th:href="@{/admin/bao-cao}" class="sidebar-link active"><i class="bi bi-flag-fill me-2"></i>Báo cáo vi phạm<span th:if="${soBaoCaoChoXuLy > 0}" class="badge bg-danger ms-auto" th:text="${soBaoCaoChoXuLy}"></span></a>
+                    <a th:href="@{/admin/chu-de}" class="sidebar-link"><i class="bi bi-folder-fill me-2"></i>Chủ đề</a>
+                    <hr class="sidebar-divider">
+                    <div class="sidebar-title">Điều hướng</div>
+                    <a th:href="@{/}" class="sidebar-link"><i class="bi bi-house-door-fill me-2"></i>Về trang chủ</a>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4">
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="bi bi-flag-fill text-warning me-2"></i>Quản lý báo cáo vi phạm</h4>
+                        <span class="badge bg-warning text-dark" th:text="${#lists.size(danhSachBaoCao)} + ' báo cáo'">0 báo cáo</span>
+                    </div>
+                    
+                    <!-- Filter tabs -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <a th:href="@{/admin/bao-cao}" 
+                           class="btn btn-lg" 
+                           th:classappend="${trangThaiFilter == null} ? 'btn-primary' : 'btn-outline-secondary'">
+                            <i class="bi bi-list-ul me-2"></i>Tất cả
+                        </a>
+                        <a th:href="@{/admin/bao-cao(trangThai='CHO_XU_LY')}" 
+                           class="btn btn-lg"
+                           th:classappend="${trangThaiFilter == 'CHO_XU_LY'} ? 'btn-warning' : 'btn-outline-warning'">
+                            <i class="bi bi-clock-fill me-2"></i>Chờ xử lý
+                        </a>
+                        <a th:href="@{/admin/bao-cao(trangThai='DA_XU_LY')}" 
+                           class="btn btn-lg"
+                           th:classappend="${trangThaiFilter == 'DA_XU_LY'} ? 'btn-success' : 'btn-outline-success'">
+                            <i class="bi bi-check-circle-fill me-2"></i>Đã xử lý
+                        </a>
+                        <a th:href="@{/admin/bao-cao(trangThai='TU_CHOI')}" 
+                           class="btn btn-lg"
+                           th:classappend="${trangThaiFilter == 'TU_CHOI'} ? 'btn-danger' : 'btn-outline-danger'">
+                            <i class="bi bi-x-circle-fill me-2"></i>Từ chối
+                        </a>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div th:if="${#lists.isEmpty(danhSachBaoCao)}" class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Không có báo cáo nào</p>
+                    </div>
+                    
+                    <!-- Reports table -->
+                    <div th:if="${not #lists.isEmpty(danhSachBaoCao)}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Người báo cáo</th>
+                                    <th>Loại</th>
+                                    <th>Nội dung bị báo cáo</th>
+                                    <th>Lý do</th>
+                                    <th>Ngày</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="bc : ${danhSachBaoCao}">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-person-circle text-muted fs-4"></i>
+                                            <span th:text="${bc.tenNguoiBaoCao}">Người báo cáo</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span th:if="${bc.loai == 'CAUHOI'}" class="badge bg-primary">
+                                            <i class="bi bi-question-circle me-1"></i>Câu hỏi
+                                        </span>
+                                        <span th:if="${bc.loai == 'CAUTRALOI'}" class="badge bg-info">
+                                            <i class="bi bi-chat-dots me-1"></i>Câu trả lời
+                                        </span>
+                                    </td>
+                                    <td style="max-width: 200px;">
+                                        <a th:if="${bc.loai == 'CAUHOI'}" th:href="@{/cau-hoi/{id}(id=${bc.maDoiTuong})}" target="_blank" class="text-decoration-none text-truncate d-block">
+                                            <span th:text="${bc.tieuDeDoiTuong != null} ? ${bc.tieuDeDoiTuong} : 'Xem chi tiết'">Nội dung</span>
+                                            <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                        </a>
+                                        <span th:if="${bc.loai != 'CAUHOI'}" th:text="${bc.tieuDeDoiTuong}" class="text-truncate d-block">Nội dung</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary" th:text="${bc.lyDo}">Lý do</span>
+                                        <div th:if="${bc.moTa != null and !#strings.isEmpty(bc.moTa)}" class="small text-muted mt-1" th:text="${#strings.abbreviate(bc.moTa, 30)}"></div>
+                                    </td>
+                                    <td>
+                                        <small th:if="${bc.ngayBaoCao != null}" th:text="${#temporals.format(bc.ngayBaoCao, 'dd/MM/yyyy HH:mm')}"></small>
+                                    </td>
+                                    <td>
+                                        <span th:if="${bc.trangThai == 'CHO_XU_LY'}" class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock me-1"></i>Chờ xử lý
+                                        </span>
+                                        <span th:if="${bc.trangThai == 'DA_XU_LY'}" class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Đã xử lý
+                                        </span>
+                                        <span th:if="${bc.trangThai == 'TU_CHOI'}" class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Từ chối
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div th:if="${bc.trangThai == 'CHO_XU_LY'}" class="action-btn-group">
+                                            <form th:action="@{/admin/bao-cao/{id}/xu-ly(id=${bc.id})}" method="post" class="d-inline">
+                                                <input type="hidden" name="trangThai" value="DA_XU_LY"/>
+                                                <button type="submit" class="action-btn action-btn-approve" title="Xác nhận vi phạm" onclick="return confirm('Xác nhận vi phạm?')">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/admin/bao-cao/{id}/xu-ly(id=${bc.id})}" method="post" class="d-inline">
+                                                <input type="hidden" name="trangThai" value="TU_CHOI"/>
+                                                <button type="submit" class="action-btn action-btn-reject" title="Từ chối báo cáo" onclick="return confirm('Từ chối báo cáo này?')">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/admin/bao-cao/{id}/xoa(id=${bc.id})}" method="post" class="d-inline">
+                                                <button type="submit" class="action-btn action-btn-delete" title="Xóa báo cáo" onclick="return confirm('Xóa báo cáo này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div th:if="${bc.trangThai != 'CHO_XU_LY'}" class="action-btn-group">
+                                            <form th:action="@{/admin/bao-cao/{id}/xoa(id=${bc.id})}" method="post" class="d-inline">
+                                                <button type="submit" class="action-btn action-btn-delete" title="Xóa" onclick="return confirm('Xóa báo cáo này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5>
+                    <p>Nền tảng trao đổi kiến thức chuyên ngành.</p>
+                </div>
+                <div class="col-lg-3">
+                    <h6>Liên kết nhanh</h6>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}">Trang chủ</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6>Thông tin dự án</h6>
+                    <ul class="list-unstyled">
+                        <li>SV: Nguyễn Thanh Thiên</li>
+                        <li>MSSV: 110122161</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <p class="text-center mb-0">© 2025 Diễn đàn CNTT</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

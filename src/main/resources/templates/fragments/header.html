@@ -264,7 +264,7 @@ function showToast(type, title, message, duration = 5000) {
 let allNotifications = [], currentFilter = 'all';
 
 function loadNotificationCount() {
-    fetch('/thong-bao/api/dem-chua-doc').then(r => r.json()).then(d => {
+    fetch('/api/thong-bao/dem').then(r => r.json()).then(d => {
         document.querySelectorAll('.notification-count').forEach(b => {
             if (d.count > 0) {
                 b.textContent = d.count > 99 ? '99+' : d.count;
@@ -277,7 +277,7 @@ function loadNotificationCount() {
 }
 
 function loadNotifications() {
-    fetch('/thong-bao/api/danh-sach').then(r => r.json()).then(d => {
+    fetch('/api/thong-bao/danh-sach').then(r => r.json()).then(d => {
         allNotifications = d;
         renderNotifications();
     }).catch(() => {});
@@ -310,7 +310,7 @@ function filterNotifications(f, b) {
 
 function markAllAsRead(e) {
     e.preventDefault();
-    fetch('/thong-bao/api/doc-tat-ca', { method: 'POST' }).then(() => {
+    fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' }).then(() => {
         loadNotifications();
         loadNotificationCount();
     });
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (n) n.dadoc = true;
                 loadNotificationCount();
             }
-            fetch('/thong-bao/api/doc/' + id, { method: 'POST' });
+            fetch('/api/thong-bao/doc/' + id, { method: 'POST' });
             setTimeout(() => window.location.href = link, 200);
         });
     });

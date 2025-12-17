@@ -1,0 +1,26 @@
+/*
+ * THEME: Purple Modern
+ * Màu tím hiện đại, sáng tạo, trẻ trung
+ */
+:root {
+    --primary: #7C3AED;
+    --primary-hover: #6D28D9;
+    --primary-active: #5B21B6;
+    --primary-light: #EDE9FE;
+    --primary-lighter: #F5F3FF;
+    
+    --accent: #8B5CF6;
+    --accent-hover: #7C3AED;
+    --accent-light: #F5F3FF;
+    
+    --navbar-bg: linear-gradient(135deg, #4C1D95 0%, #5B21B6 50%, #6D28D9 100%);
+    --hero-bg: linear-gradient(135deg, #4C1D95 0%, #5B21B6 100%);
+    --footer-bg: #4C1D95;
+    
+    --success: #10B981;
+    --info: #7C3AED;
+    --text-link: #7C3AED;
+    --text-link-hover: #6D28D9;
+    --border-focus: #7C3AED;
+    --shadow-focus: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}

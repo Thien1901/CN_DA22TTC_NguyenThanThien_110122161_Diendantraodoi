@@ -4,6 +4,7 @@ import com.example.forum.model.NguoiDung;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -12,4 +13,5 @@ public interface NguoiDungRepository extends MongoRepository<NguoiDung, String> 
     Optional<NguoiDung> findByEmail(String email);
     boolean existsByTendangnhap(String tendangnhap);
     boolean existsByEmail(String email);
+    List<NguoiDung> findByVaitroMavaitro(String mavaitro);
 }

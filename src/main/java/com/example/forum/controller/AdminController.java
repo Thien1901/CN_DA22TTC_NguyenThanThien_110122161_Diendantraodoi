@@ -21,6 +21,7 @@ public class AdminController {
     private final CauHoiService cauHoiService;
     private final CauTraLoiService cauTraLoiService;
     private final ChuDeService chuDeService;
+    private final BaoCaoService baoCaoService;
     
     @GetMapping
     public String dashboard(Model model) {
@@ -104,6 +105,46 @@ public class AdminController {
         return "redirect:/admin/cau-hoi";
     }
     
+    @PostMapping("/cau-hoi/{id}/tu-choi")
+    public String tuChoiCauHoi(@PathVariable String id, @RequestParam String lyDoTuChoi, RedirectAttributes redirectAttributes) {
+        cauHoiService.tuChoiCauHoi(id, lyDoTuChoi);
+        redirectAttributes.addFlashAttribute("success", "Đã từ chối câu hỏi!");
+        return "redirect:/admin/cau-hoi/cho-duyet";
+    }
+    
+    @GetMapping("/cau-hoi/da-tu-choi")
+    public String cauHoiDaTuChoi(Model model) {
+        model.addAttribute("cauHois", cauHoiService.layCauHoiDaTuChoi());
+        return "admin/cau-hoi/da-tu-choi";
+    }
+    
+    // =================== BÁO CÁO VI PHẠM ===================
+    @GetMapping("/bao-cao")
+    public String quanLyBaoCao(@RequestParam(required = false) String trangThai, Model model) {
+        if (trangThai != null && !trangThai.isEmpty()) {
+            model.addAttribute("danhSachBaoCao", baoCaoService.layBaoCaoTheoTrangThai(trangThai));
+        } else {
+            model.addAttribute("danhSachBaoCao", baoCaoService.layTatCaBaoCao());
+        }
+        model.addAttribute("trangThaiFilter", trangThai);
+        return "admin/bao-cao";
+    }
+    
+    @PostMapping("/bao-cao/{id}/xu-ly")
+    public String xuLyBaoCao(@PathVariable String id, @RequestParam String trangThai, RedirectAttributes redirectAttributes) {
+        baoCaoService.xuLyBaoCao(id, trangThai, null);
+        String msg = "DA_XU_LY".equals(trangThai) ? "Đã xác nhận vi phạm!" : "Đã từ chối báo cáo!";
+        redirectAttributes.addFlashAttribute("success", msg);
+        return "redirect:/admin/bao-cao";
+    }
+    
+    @PostMapping("/bao-cao/{id}/xoa")
+    public String xoaBaoCao(@PathVariable String id, RedirectAttributes redirectAttributes) {
+        baoCaoService.xoaBaoCao(id);
+        redirectAttributes.addFlashAttribute("success", "Đã xóa báo cáo!");
+        return "redirect:/admin/bao-cao";
+    }
+    
     // =================== CHỦ ĐỀ ===================
     @GetMapping("/chu-de")
     public String danhSachChuDe(Model model) {
@@ -117,9 +158,9 @@ public class AdminController {
         return "admin/chu-de/form";
     }
     
-    @GetMapping("/chu-de/{id}/sua")
-    public String formSuaChuDe(@PathVariable String id, Model model) {
-        Optional<ChuDeEntity> chuDeOpt = chuDeService.timTheoId(id);
+    @GetMapping("/chu-de/{machude}/sua")
+    public String formSuaChuDe(@PathVariable String machude, Model model) {
+        Optional<ChuDeEntity> chuDeOpt = chuDeService.timTheoMa(machude);
         if (chuDeOpt.isEmpty()) {
             return "redirect:/admin/chu-de";
         }
@@ -129,20 +170,22 @@ public class AdminController {
     
     @PostMapping("/chu-de/luu")
     public String luuChuDe(@ModelAttribute ChuDeEntity chuDe, RedirectAttributes redirectAttributes) {
-        // Nếu là chủ đề mới, tạo mã chủ đề và thứ tự tự động
+        // Nếu là chủ đề mới (id null hoặc empty)
         if (chuDe.getId() == null || chuDe.getId().isEmpty()) {
-            long count = chuDeService.dem();
-            chuDe.setMachude(String.valueOf(count + 1));
-            chuDe.setThutu((int) count + 1);
+            chuDe.setId(null); // Đảm bảo MongoDB tự tạo ID mới
+            // Tạo mã chủ đề unique dựa trên timestamp
+            chuDe.setMachude("CD" + System.currentTimeMillis());
+            // Thứ tự = số chủ đề hiện tại + 1
+            chuDe.setThutu((int) chuDeService.dem() + 1);
         }
         chuDeService.luu(chuDe);
         redirectAttributes.addFlashAttribute("success", "Đã lưu chủ đề thành công!");
         return "redirect:/admin/chu-de";
     }
     
-    @PostMapping("/chu-de/{id}/xoa")
-    public String xoaChuDe(@PathVariable String id, RedirectAttributes redirectAttributes) {
-        chuDeService.xoa(id);
+    @PostMapping("/chu-de/{machude}/xoa")
+    public String xoaChuDe(@PathVariable String machude, RedirectAttributes redirectAttributes) {
+        chuDeService.xoaTheoMa(machude);
         redirectAttributes.addFlashAttribute("success", "Đã xóa chủ đề!");
         return "redirect:/admin/chu-de";
     }

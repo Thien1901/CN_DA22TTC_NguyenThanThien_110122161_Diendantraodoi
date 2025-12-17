@@ -74,6 +74,30 @@
                         </a>
                     </li>
                     
+                    <!-- Notification Bell -->
+                    <li class="nav-item dropdown me-2" sec:authorize="isAuthenticated()">
+                        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="notificationBell">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" id="notificationCount" style="display: none;">
+                                0
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end notification-dropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                            <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                <span>Thông báo</span>
+                                <a href="#" onclick="markAllAsRead()" class="text-primary small">Đánh dấu đã đọc</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <div id="notificationList">
+                                <li class="text-center py-3 text-muted">Đang tải...</li>
+                            </div>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="text-center">
+                                <a class="dropdown-item" th:href="@{/thong-bao}">Xem tất cả thông báo</a>
+                            </li>
+                        </ul>
+                    </li>
+                    
                     <!-- Ask Question CTA -->
                     <li class="nav-item me-2" sec:authorize="isAuthenticated()">
                         <a class="btn btn-cta" th:href="@{/cau-hoi/tao-moi}">
@@ -260,6 +284,89 @@
     function goToQuestion(id) {
         window.location.href = '/cau-hoi/' + id;
     }
+    
+    // Notification functions
+    function loadNotificationCount() {
+        fetch('/api/thong-bao/dem')
+            .then(res => res.json())
+            .then(data => {
+                const badge = document.getElementById('notificationCount');
+                if (badge && data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.style.display = 'inline';
+                } else if (badge) {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(err => console.error('Error loading notification count:', err));
+    }
+    
+    function loadNotifications() {
+        fetch('/api/thong-bao/danh-sach')
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('notificationList');
+                if (!list) return;
+                
+                if (data.length === 0) {
+                    list.innerHTML = '<li class="text-center py-3 text-muted"><i class="bi bi-bell-slash"></i> Không có thông báo</li>';
+                    return;
+                }
+                
+                let html = '';
+                data.slice(0, 5).forEach(tb => {
+                    const unreadClass = (tb.dadoc || tb.daDoc) ? '' : 'bg-light';
+                    const senderName = tb.tennguoigui || tb.tenNguoiGui || 'Người dùng';
+                    let avatar = tb.avatarnguoigui || tb.avatarNguoiGui;
+                    if (!avatar || avatar === 'null' || avatar === '') {
+                        avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(senderName) + '&background=2563eb&color=fff';
+                    }
+                    const link = tb.link || tb.duongDan || '#';
+                    html += `
+                        <li>
+                            <a class="dropdown-item py-2 ${unreadClass}" href="${link}" onclick="markAsRead('${tb.id}')">
+                                <div class="d-flex align-items-start">
+                                    <img src="${avatar}" class="rounded-circle me-2" style="width:32px;height:32px;" alt="Avatar">
+                                    <div>
+                                        <div class="fw-semibold small">${tb.tieuDe}</div>
+                                        <div class="text-muted small text-truncate" style="max-width: 280px;">${tb.noiDung}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>`;
+                });
+                list.innerHTML = html;
+            })
+            .catch(err => console.error('Error loading notifications:', err));
+    }
+    
+    function markAsRead(id) {
+        fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
+            .then(() => loadNotificationCount())
+            .catch(err => console.error('Error marking as read:', err));
+    }
+    
+    function markAllAsRead() {
+        fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
+            .then(() => {
+                loadNotificationCount();
+                loadNotifications();
+            })
+            .catch(err => console.error('Error marking all as read:', err));
+    }
+    
+    // Load notifications on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadNotificationCount();
+        
+        const bell = document.getElementById('notificationBell');
+        if (bell) {
+            bell.addEventListener('click', loadNotifications);
+        }
+        
+        // Refresh notification count every 30 seconds
+        setInterval(loadNotificationCount, 30000);
+    });
     </script>
 </body>
 </html>

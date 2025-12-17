@@ -1,0 +1,26 @@
+/*
+ * THEME: Green Nature
+ * Màu xanh lá tự nhiên, thân thiện, tươi mát
+ */
+:root {
+    --primary: #059669;
+    --primary-hover: #047857;
+    --primary-active: #065F46;
+    --primary-light: #D1FAE5;
+    --primary-lighter: #ECFDF5;
+    
+    --accent: #10B981;
+    --accent-hover: #059669;
+    --accent-light: #ECFDF5;
+    
+    --navbar-bg: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%);
+    --hero-bg: linear-gradient(135deg, #064E3B 0%, #065F46 100%);
+    --footer-bg: #064E3B;
+    
+    --success: #10B981;
+    --info: #059669;
+    --text-link: #059669;
+    --text-link-hover: #047857;
+    --border-focus: #059669;
+    --shadow-focus: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}

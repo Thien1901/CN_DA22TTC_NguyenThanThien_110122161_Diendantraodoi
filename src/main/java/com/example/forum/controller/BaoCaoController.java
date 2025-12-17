@@ -2,131 +2,122 @@ package com.example.forum.controller;
 
 import com.example.forum.model.BaoCao;
 import com.example.forum.model.NguoiDung;
-import com.example.forum.model.VaiTro;
 import com.example.forum.service.BaoCaoService;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.forum.service.NguoiDungService;
+import com.example.forum.service.ThongBaoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-@Controller
-@RequestMapping("/bao-cao")
+@RestController
+@RequestMapping("/api/bao-cao")
+@RequiredArgsConstructor
 public class BaoCaoController {
 
-    @Autowired
-    private BaoCaoService baoCaoService;
+    private final BaoCaoService baoCaoService;
+    private final ThongBaoService thongBaoService;
+    private final NguoiDungService nguoiDungService;
 
-    // API tạo báo cáo (AJAX)
     @PostMapping("/gui")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> guiBaoCao(
-            @RequestBody BaoCao baoCao,
-            HttpSession session) {
+            @RequestBody Map<String, String> body,
+            Authentication auth) {
         
-        Map<String, Object> response = new HashMap<>();
-        NguoiDung nguoiDung = (NguoiDung) session.getAttribute("nguoiDung");
+        Map<String, Object> res = new HashMap<>();
         
+        if (auth == null) {
+            res.put("success", false);
+            res.put("message", "Vui lòng đăng nhập");
+            return ResponseEntity.badRequest().body(res);
+        }
+        
+        NguoiDung nguoiDung = nguoiDungService.timTheoTenDangNhap(auth.getName()).orElse(null);
         if (nguoiDung == null) {
-            response.put("success", false);
-            response.put("message", "Vui lòng đăng nhập để báo cáo");
-            return ResponseEntity.badRequest().body(response);
+            res.put("success", false);
+            res.put("message", "Không tìm thấy người dùng");
+            return ResponseEntity.badRequest().body(res);
         }
-
-        // Kiểm tra đã báo cáo chưa
-        if (baoCaoService.daBaoCao(nguoiDung.getManguoidung(), baoCao.getMaDoiTuong())) {
-            response.put("success", false);
-            response.put("message", "Bạn đã báo cáo nội dung này rồi");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        baoCao.setMaNguoiBaoCao(nguoiDung.getManguoidung());
-        baoCao.setTenNguoiBaoCao(nguoiDung.getHoten());
-        baoCaoService.taoBaoCao(baoCao);
-
-        response.put("success", true);
-        response.put("message", "Báo cáo đã được gửi thành công");
-        return ResponseEntity.ok(response);
-    }
-
-
-    // Trang quản lý báo cáo (Admin)
-    @GetMapping("/quan-ly")
-    public String quanLyBaoCao(
-            @RequestParam(required = false) String trangThai,
-            Model model,
-            HttpSession session) {
         
-        NguoiDung nguoiDung = (NguoiDung) session.getAttribute("nguoiDung");
-        if (nguoiDung == null || nguoiDung.getVaitro() != VaiTro.ADMIN) {
-            return "redirect:/dang-nhap";
+        String loai = body.get("loai");
+        String maDoiTuong = body.get("maDoiTuong");
+        String lyDo = body.get("lyDo");
+        String moTa = body.get("moTa");
+        
+        if (baoCaoService.daBaoCao(nguoiDung.getManguoidung(), maDoiTuong)) {
+            res.put("success", false);
+            res.put("message", "Bạn đã báo cáo nội dung này rồi");
+            return ResponseEntity.badRequest().body(res);
         }
-
-        List<BaoCao> danhSachBaoCao;
-        if (trangThai != null && !trangThai.isEmpty()) {
-            danhSachBaoCao = baoCaoService.layBaoCaoTheoTrangThai(trangThai);
-        } else {
-            danhSachBaoCao = baoCaoService.layTatCaBaoCao();
-        }
-
-        model.addAttribute("danhSachBaoCao", danhSachBaoCao);
-        model.addAttribute("trangThaiFilter", trangThai);
-        return "admin/quan-ly-bao-cao";
+        
+        BaoCao bc = new BaoCao();
+        bc.setLoai(loai);
+        bc.setMaDoiTuong(maDoiTuong);
+        bc.setLyDo(lyDo);
+        bc.setMoTa(moTa);
+        bc.setMaNguoiBaoCao(nguoiDung.getManguoidung());
+        bc.setTenNguoiBaoCao(nguoiDung.getHoten());
+        baoCaoService.taoBaoCao(bc);
+        
+        String loaiText = "CAUHOI".equals(loai) ? "câu hỏi" : "câu trả lời";
+        
+        // Gửi thông báo cho admin
+        thongBaoService.guiThongBaoChoAdmin(
+            "Báo cáo mới: " + loaiText,
+            nguoiDung.getHoten() + " báo cáo " + loaiText + " - Lý do: " + lyDo,
+            "BAO_CAO_MOI",
+            "/admin/bao-cao"
+        );
+        
+        // Gửi thông báo cho người dùng đã báo cáo
+        thongBaoService.taoThongBao(
+            nguoiDung.getManguoidung(),
+            "Báo cáo đã được gửi",
+            "Báo cáo " + loaiText + " của bạn đã được gửi thành công. Admin sẽ xem xét và xử lý.",
+            "/ho-so",
+            "BAO_CAO_DA_GUI",
+            null, null, null
+        );
+        
+        res.put("success", true);
+        res.put("message", "Đã gửi báo cáo thành công");
+        return ResponseEntity.ok(res);
     }
 
-    // Xử lý báo cáo (Admin)
     @PostMapping("/xu-ly/{id}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> xuLyBaoCao(
+    public ResponseEntity<Map<String, Object>> xuLy(
             @PathVariable String id,
             @RequestParam String trangThai,
-            @RequestParam(required = false) String ghiChuXuLy,
-            HttpSession session) {
+            Authentication auth) {
         
-        Map<String, Object> response = new HashMap<>();
-        NguoiDung nguoiDung = (NguoiDung) session.getAttribute("nguoiDung");
+        Map<String, Object> res = new HashMap<>();
         
-        if (nguoiDung == null || nguoiDung.getVaitro() != VaiTro.ADMIN) {
-            response.put("success", false);
-            response.put("message", "Không có quyền thực hiện");
-            return ResponseEntity.status(403).body(response);
+        if (auth == null || auth.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            res.put("success", false);
+            res.put("message", "Không có quyền");
+            return ResponseEntity.status(403).body(res);
         }
-
-        BaoCao baoCao = baoCaoService.xuLyBaoCao(id, trangThai, ghiChuXuLy);
-        if (baoCao != null) {
-            response.put("success", true);
-            response.put("message", "Đã xử lý báo cáo thành công");
-        } else {
-            response.put("success", false);
-            response.put("message", "Không tìm thấy báo cáo");
-        }
-        return ResponseEntity.ok(response);
+        
+        baoCaoService.xuLyBaoCao(id, trangThai, null);
+        res.put("success", true);
+        res.put("message", "Đã xử lý");
+        return ResponseEntity.ok(res);
     }
 
-    // Xóa báo cáo (Admin)
     @DeleteMapping("/xoa/{id}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> xoaBaoCao(
-            @PathVariable String id,
-            HttpSession session) {
+    public ResponseEntity<Map<String, Object>> xoa(@PathVariable String id, Authentication auth) {
+        Map<String, Object> res = new HashMap<>();
         
-        Map<String, Object> response = new HashMap<>();
-        NguoiDung nguoiDung = (NguoiDung) session.getAttribute("nguoiDung");
-        
-        if (nguoiDung == null || nguoiDung.getVaitro() != VaiTro.ADMIN) {
-            response.put("success", false);
-            response.put("message", "Không có quyền thực hiện");
-            return ResponseEntity.status(403).body(response);
+        if (auth == null || auth.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            res.put("success", false);
+            return ResponseEntity.status(403).body(res);
         }
-
+        
         baoCaoService.xoaBaoCao(id);
-        response.put("success", true);
-        response.put("message", "Đã xóa báo cáo");
-        return ResponseEntity.ok(response);
+        res.put("success", true);
+        return ResponseEntity.ok(res);
     }
 }

@@ -1,8 +1,8 @@
 package com.example.forum.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,17 +15,22 @@ import java.time.LocalDateTime;
 public class ThongBao {
     @Id
     private String id;
+    private String maNguoiNhan;
+    private String tieuDe;
+    private String noiDung;
+    private String loai; // BAO_CAO_MOI, TRA_LOI_MOI, REPLY
+    private String duongDan;
+    private boolean daDoc = false;
+    private LocalDateTime ngayTao = LocalDateTime.now();
     
-    private String manguoidung; // Người nhận thông báo
-    private String tieude;
-    private String noidung;
-    private String link; // Link đến câu hỏi/bình luận
-    private String loai; // REPLY, LIKE, SYSTEM
-    private boolean dadoc; // Đã đọc chưa
-    private LocalDateTime ngaytao;
+    // Thông tin người gửi (để hiển thị trong notification)
+    private String tenNguoiGui;
+    private String avatarNguoiGui;
     
-    // Thông tin người gửi (người trả lời)
-    private String manguoigui;
-    private String tennguoigui;
-    private String avatarnguoigui;
+    // Getter alias cho JavaScript compatibility (lowercase để JSON serialize đúng)
+    public String getLink() { return duongDan; }
+    public boolean getDadoc() { return daDoc; }
+    public LocalDateTime getNgaytao() { return ngayTao; }
+    public String getTennguoigui() { return tenNguoiGui; }
+    public String getAvatarnguoigui() { return avatarNguoiGui; }
 }
