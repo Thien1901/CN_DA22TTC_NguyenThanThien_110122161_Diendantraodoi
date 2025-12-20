@@ -31,6 +31,11 @@ public class CauTraLoi {
     private String noidung;
     private LocalDateTime ngaytraloi = LocalDateTime.now();
     
+    // Like/Dislike
+    private Integer luotthich = 0;
+    private List<String> nguoiDaThich = new ArrayList<>();
+    private List<String> nguoiKhongThich = new ArrayList<>();
+    
     // Ảnh đính kèm trong bình luận
     private List<String> dinhkem;
     

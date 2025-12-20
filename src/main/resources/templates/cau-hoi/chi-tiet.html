@@ -23,6 +23,17 @@
         .question-actions{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-top:1px solid var(--border-subtle);margin-top:1.5rem;flex-wrap:wrap}
         .action-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:var(--radius-full);font-size:.875rem;font-weight:500;cursor:pointer;border:1px solid var(--border-default);background:var(--bg-elevated);color:var(--text-secondary)}
         .action-btn:hover{background:var(--bg-sunken);color:var(--text-primary)}
+        /* Vote buttons */
+        .vote-buttons{display:flex;flex-direction:row;align-items:center;gap:8px}
+        .vote-buttons-sm{display:flex;flex-direction:row;align-items:center;gap:6px}
+        .vote-btn{transition:all .2s}
+        .vote-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .vote-btn.active-dislike{background:var(--error);color:#fff;border-color:var(--error)}
+        .vote-btn:disabled{opacity:.5;cursor:not-allowed}
+        .btn-vote{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:none;background:transparent;color:var(--text-secondary);font-size:.85rem;cursor:pointer;border-radius:var(--radius-md);transition:all .2s}
+        .btn-vote:hover{background:var(--bg-sunken);color:var(--primary)}
+        .btn-vote.active{color:var(--primary);background:rgba(59,130,246,.1)}
+        .btn-vote.active-dislike{color:var(--error);background:rgba(239,68,68,.1)}
         /* Emoji Picker Styles */
         .btn-emoji{position:absolute;right:12px;top:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;font-size:1.5rem;color:#fff;cursor:pointer;padding:8px 12px;border-radius:12px;transition:all .3s;box-shadow:0 2px 8px rgba(102,126,234,.3)}
         .btn-emoji:hover{transform:scale(1.1);box-shadow:0 4px 15px rgba(102,126,234,.4)}
@@ -106,6 +117,16 @@
                 <div th:each="file : ${cauHoi.dinhkem}" class="mb-3"><a th:href="@{${file}}" target="_blank"><img th:src="@{${file}}" class="img-fluid rounded" style="max-width:100%;max-height:400px;" alt="Ảnh"></a></div>
             </div>
             <div class="question-actions">
+                <div class="vote-buttons d-flex align-items-center gap-2">
+                    <button class="action-btn vote-btn" id="btnLikeCauHoi" onclick="likeCauHoi()" th:disabled="${!isLoggedIn}">
+                        <i class="bi bi-hand-thumbs-up"></i>
+                        <span id="likeCauHoiCount">0</span>
+                    </button>
+                    <button class="action-btn vote-btn" id="btnDislikeCauHoi" onclick="dislikeCauHoi()" th:disabled="${!isLoggedIn}">
+                        <i class="bi bi-hand-thumbs-down"></i>
+                        <span id="dislikeCauHoiCount">0</span>
+                    </button>
+                </div>
                 <div class="ms-auto d-flex gap-2">
                     <button th:if="${isLoggedIn and !isOwner}" class="action-btn" onclick="openReportModal('CAUHOI')"><i class="bi bi-flag"></i><span class="d-none d-sm-inline">Báo cáo</span></button>
                     <th:block th:if="${isOwner or isAdmin}">
@@ -131,6 +152,16 @@
                                 <a th:each="img : ${traloi.dinhkem}" th:href="@{${img}}" target="_blank"><img th:src="@{${img}}" class="rounded" style="max-width:150px;max-height:150px;object-fit:cover;" alt=""></a>
                             </div>
                             <div class="d-flex gap-3" th:if="${isLoggedIn}">
+                                <div class="vote-buttons-sm d-flex align-items-center gap-1">
+                                    <button class="btn-vote" th:id="'btnLike-' + ${traloi.macautraloi}" th:attr="onclick='likeBinhLuan(\'' + ${traloi.macautraloi} + '\')'">
+                                        <i class="bi bi-hand-thumbs-up"></i>
+                                        <span th:id="'likeCount-' + ${traloi.macautraloi}" th:text="${traloi.nguoiDaThich != null ? traloi.nguoiDaThich.size() : 0}">0</span>
+                                    </button>
+                                    <button class="btn-vote" th:id="'btnDislike-' + ${traloi.macautraloi}" th:attr="onclick='dislikeBinhLuan(\'' + ${traloi.macautraloi} + '\')'">
+                                        <i class="bi bi-hand-thumbs-down"></i>
+                                        <span th:id="'dislikeCount-' + ${traloi.macautraloi}" th:text="${traloi.nguoiKhongThich != null ? traloi.nguoiKhongThich.size() : 0}">0</span>
+                                    </button>
+                                </div>
                                 <span class="btn-reply" th:attr="onclick='toggleReplyForm(\'' + ${traloi.macautraloi} + '\')'"><i class="bi bi-reply me-1"></i>Trả lời</span>
                                 <form th:if="${currentUser != null and (currentUser.manguoidung == traloi.manguoidung or isAdmin)}" th:action="@{/cau-hoi/{cauhoiId}/tra-loi/{id}/xoa(cauhoiId=${cauHoi.id}, id=${traloi.macautraloi})}" method="post" class="d-inline" onsubmit="return confirm('Xóa bình luận này?')">
                                     <button type="submit" class="btn-reply text-danger" style="border:none;background:none;padding:0;cursor:pointer"><i class="bi bi-trash me-1"></i>Xóa</button>
@@ -162,6 +193,16 @@
                                             <a th:each="img : ${traloiCon.dinhkem}" th:href="@{${img}}" target="_blank"><img th:src="@{${img}}" class="rounded" style="max-width:150px;max-height:150px;object-fit:cover;" alt=""></a>
                                         </div>
                                         <div class="d-flex gap-3" th:if="${isLoggedIn}">
+                                            <div class="vote-buttons-sm d-flex align-items-center gap-1">
+                                                <button class="btn-vote" th:id="'btnLike-' + ${traloiCon.macautraloi}" th:attr="onclick='likeBinhLuan(\'' + ${traloiCon.macautraloi} + '\')'">
+                                                    <i class="bi bi-hand-thumbs-up"></i>
+                                                    <span th:id="'likeCount-' + ${traloiCon.macautraloi}" th:text="${traloiCon.nguoiDaThich != null ? traloiCon.nguoiDaThich.size() : 0}">0</span>
+                                                </button>
+                                                <button class="btn-vote" th:id="'btnDislike-' + ${traloiCon.macautraloi}" th:attr="onclick='dislikeBinhLuan(\'' + ${traloiCon.macautraloi} + '\')'">
+                                                    <i class="bi bi-hand-thumbs-down"></i>
+                                                    <span th:id="'dislikeCount-' + ${traloiCon.macautraloi}" th:text="${traloiCon.nguoiKhongThich != null ? traloiCon.nguoiKhongThich.size() : 0}">0</span>
+                                                </button>
+                                            </div>
                                             <span class="btn-reply" th:attr="onclick='toggleReplyForm(\'' + ${traloiCon.macautraloi} + '\')'"><i class="bi bi-reply me-1"></i>Trả lời</span>
                                             <form th:if="${currentUser != null and (currentUser.manguoidung == traloiCon.manguoidung or isAdmin)}" th:action="@{/cau-hoi/{cauhoiId}/tra-loi/{id}/xoa(cauhoiId=${cauHoi.id}, id=${traloiCon.macautraloi})}" method="post" class="d-inline" onsubmit="return confirm('Xóa bình luận này?')">
                                                 <button type="submit" class="btn-reply text-danger" style="border:none;background:none;padding:0;cursor:pointer"><i class="bi bi-trash me-1"></i>Xóa</button>
@@ -232,6 +273,116 @@ odal Báo cáo -->
 <footer class="footer"><div class="container"><div class="row g-4"><div class="col-lg-5"><h5><i class="bi bi-chat-square-text-fill me-2"></i>Diễn đàn CNTT</h5><p>Nền tảng trao đổi kiến thức chuyên ngành.</p></div><div class="col-lg-3"><h6>Liên kết</h6><ul class="list-unstyled"><li><a th:href="@{/}">Trang chủ</a></li><li><a th:href="@{/tat-ca-cau-hoi}">Tất cả câu hỏi</a></li></ul></div><div class="col-lg-4"><h6>Thông tin</h6><ul class="list-unstyled"><li>SV: Nguyễn Thanh Thiên</li><li>MSSV: 110122161</li></ul></div></div><hr><p class="text-center mb-0">© 2025 Diễn đàn CNTT</p></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/chi-tiet.js}"></script>
+<script th:inline="javascript">
+// Like/Dislike functions
+const cauHoiId = /*[[${cauHoi.id}]]*/ '';
+const isLoggedIn = /*[[${isLoggedIn}]]*/ false;
+
+// Load trạng thái like câu hỏi khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    loadCauHoiLikeStatus();
+});
+
+function loadCauHoiLikeStatus() {
+    fetch('/api/like/cau-hoi/' + cauHoiId + '/status')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('likeCauHoiCount').textContent = data.likes;
+            document.getElementById('dislikeCauHoiCount').textContent = data.dislikes;
+            
+            const btnLike = document.getElementById('btnLikeCauHoi');
+            const btnDislike = document.getElementById('btnDislikeCauHoi');
+            
+            btnLike.classList.toggle('active', data.liked);
+            btnDislike.classList.toggle('active-dislike', data.disliked);
+        })
+        .catch(() => {});
+}
+
+function likeCauHoi() {
+    if (!isLoggedIn) {
+        showToast('warning', 'Thông báo', 'Vui lòng đăng nhập để thích bài viết');
+        return;
+    }
+    
+    fetch('/api/like/cau-hoi/' + cauHoiId + '/like', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('likeCauHoiCount').textContent = data.likes;
+            document.getElementById('dislikeCauHoiCount').textContent = data.dislikes;
+            
+            const btnLike = document.getElementById('btnLikeCauHoi');
+            const btnDislike = document.getElementById('btnDislikeCauHoi');
+            
+            btnLike.classList.toggle('active', data.liked);
+            btnDislike.classList.remove('active-dislike');
+        })
+        .catch(() => showToast('error', 'Lỗi', 'Không thể thực hiện'));
+}
+
+function dislikeCauHoi() {
+    if (!isLoggedIn) {
+        showToast('warning', 'Thông báo', 'Vui lòng đăng nhập để không thích bài viết');
+        return;
+    }
+    
+    fetch('/api/like/cau-hoi/' + cauHoiId + '/dislike', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('likeCauHoiCount').textContent = data.likes;
+            document.getElementById('dislikeCauHoiCount').textContent = data.dislikes;
+            
+            const btnLike = document.getElementById('btnLikeCauHoi');
+            const btnDislike = document.getElementById('btnDislikeCauHoi');
+            
+            btnLike.classList.remove('active');
+            btnDislike.classList.toggle('active-dislike', data.disliked);
+        })
+        .catch(() => showToast('error', 'Lỗi', 'Không thể thực hiện'));
+}
+
+function likeBinhLuan(id) {
+    if (!isLoggedIn) {
+        showToast('warning', 'Thông báo', 'Vui lòng đăng nhập để thích bình luận');
+        return;
+    }
+    
+    fetch('/api/like/binh-luan/' + id + '/like', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('likeCount-' + id).textContent = data.likes;
+            document.getElementById('dislikeCount-' + id).textContent = data.dislikes;
+            
+            const btnLike = document.getElementById('btnLike-' + id);
+            const btnDislike = document.getElementById('btnDislike-' + id);
+            
+            btnLike.classList.toggle('active', data.liked);
+            btnDislike.classList.remove('active-dislike');
+        })
+        .catch(() => showToast('error', 'Lỗi', 'Không thể thực hiện'));
+}
+
+function dislikeBinhLuan(id) {
+    if (!isLoggedIn) {
+        showToast('warning', 'Thông báo', 'Vui lòng đăng nhập để không thích bình luận');
+        return;
+    }
+    
+    fetch('/api/like/binh-luan/' + id + '/dislike', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('likeCount-' + id).textContent = data.likes;
+            document.getElementById('dislikeCount-' + id).textContent = data.dislikes;
+            
+            const btnLike = document.getElementById('btnLike-' + id);
+            const btnDislike = document.getElementById('btnDislike-' + id);
+            
+            btnLike.classList.remove('active');
+            btnDislike.classList.toggle('active-dislike', data.disliked);
+        })
+        .catch(() => showToast('error', 'Lỗi', 'Không thể thực hiện'));
+}
+</script>
 <script>
 // Emoji Picker
 const emojiCategories = {
