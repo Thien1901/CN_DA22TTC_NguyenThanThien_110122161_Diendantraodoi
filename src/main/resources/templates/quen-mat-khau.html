@@ -40,7 +40,23 @@
                         </div>
                         <div th:if="${success}" class="alert alert-success">
                             <i class="bi bi-check-circle-fill me-2"></i>
-                            <span>Nếu email tồn tại, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.</span>
+                            <div>
+                                <strong>Yêu cầu đã được xử lý!</strong><br>
+                                <span th:unless="${emailError}">Vui lòng kiểm tra hộp thư (và thư mục spam) để lấy link đặt lại mật khẩu.</span>
+                                <span th:if="${emailError}">Không thể gửi email. Vui lòng sử dụng link bên dưới:</span>
+                            </div>
+                        </div>
+                        <!-- Hiển thị link backup nếu email không gửi được -->
+                        <div th:if="${resetLink}" class="alert alert-warning mt-3">
+                            <i class="bi bi-link-45deg me-2"></i>
+                            <strong>Link đặt lại mật khẩu:</strong><br>
+                            <a th:href="${resetLink}" class="text-break" th:text="${resetLink}">Link</a>
+                        </div>
+                        <div th:if="${success}" class="text-center mt-3">
+                            <p class="text-muted small">Không nhận được email?</p>
+                            <a th:href="@{/quen-mat-khau}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-repeat me-1"></i>Gửi lại
+                            </a>
                         </div>
                         <form th:action="@{/quen-mat-khau}" method="post" th:unless="${success}">
                             <div class="mb-4">

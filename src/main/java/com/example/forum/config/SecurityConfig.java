@@ -1,6 +1,8 @@
 package com.example.forum.config;
 
 import com.example.forum.security.CustomUserDetailsService;
+import com.example.forum.security.CustomOAuth2UserService;
+import com.example.forum.security.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     
     private final CustomUserDetailsService userDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -29,7 +33,7 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/thong-bao/**", "/bao-cao/**", "/api/**")
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/cau-hoi/**", "/chuyen-nganh/**", "/chu-de/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/**", "/bao-cao/**", "/api/**", "/tat-ca-cau-hoi").permitAll()
+                .requestMatchers("/", "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/dat-lai-mat-khau", "/cau-hoi/**", "/chuyen-nganh/**", "/chu-de/**", "/tim-kiem", "/ho-so/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thong-bao/**", "/bao-cao/**", "/api/**", "/tat-ca-cau-hoi", "/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -41,6 +45,14 @@ public class SecurityConfig {
                 .usernameParameter("tendangnhap")
                 .passwordParameter("matkhau")
                 .permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/dang-nhap")
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
+                )
+                .successHandler(oAuth2LoginSuccessHandler)
+                .failureUrl("/dang-nhap?error=oauth2")
             )
             .logout(logout -> logout
                 .logoutUrl("/dang-xuat")

@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
 @Controller
 @RequestMapping("/ho-so")
 @RequiredArgsConstructor
@@ -32,12 +34,30 @@ public class HoSoController {
     private final CauTraLoiService cauTraLoiService;
     private final PasswordEncoder passwordEncoder;
     
+    // Helper method để lấy username từ cả đăng nhập thường và OAuth2
+    private String getUsername(Authentication authentication) {
+        if (authentication.getPrincipal() instanceof OAuth2User) {
+            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+            // Lấy username từ attribute đã set trong CustomOAuth2UserService
+            String username = oauth2User.getAttribute("username");
+            if (username != null) {
+                return username;
+            }
+            // Fallback: tìm theo email
+            String email = oauth2User.getAttribute("email");
+            return nguoiDungService.timTheoEmail(email)
+                    .map(NguoiDung::getTendangnhap)
+                    .orElse(email);
+        }
+        return authentication.getName();
+    }
+    
     @GetMapping
     public String hoSoCaNhan(Authentication authentication) {
         if (authentication == null) {
             return "redirect:/dang-nhap";
         }
-        return "redirect:/ho-so/" + authentication.getName();
+        return "redirect:/ho-so/" + getUsername(authentication);
     }
     
     @GetMapping("/{username}")
@@ -64,7 +84,8 @@ public class HoSoController {
             return "redirect:/dang-nhap";
         }
         
-        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
+        String username = getUsername(authentication);
+        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(username);
         if (nguoiDungOpt.isEmpty()) {
             return "redirect:/";
         }
@@ -90,7 +111,8 @@ public class HoSoController {
             return "redirect:/dang-nhap";
         }
         
-        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
+        String username = getUsername(authentication);
+        Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(username);
         if (nguoiDungOpt.isEmpty()) {
             return "redirect:/";
         }

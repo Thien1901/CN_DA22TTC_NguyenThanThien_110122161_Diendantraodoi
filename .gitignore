@@ -35,6 +35,7 @@ logs/
 # Spring Boot
 application-local.properties
 application-local.yml
+**/application-secrets.properties
 
 # Uploads (keep folder structure but ignore files)
 uploads/*

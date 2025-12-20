@@ -109,7 +109,7 @@
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                         <img th:if="${currentUser != null}" th:src="${currentUser.anhdaidien != null && !currentUser.anhdaidien.isEmpty()} ? ${currentUser.anhdaidien} : 'https://ui-avatars.com/api/?name=' + ${#strings.replace(currentUser.hoten, ' ', '+')}" class="avatar avatar-sm me-2" alt="Avatar">
-                        <span sec:authentication="name" class="d-none d-lg-inline">User</span>
+                        <span th:text="${currentUser?.hoten}" class="d-none d-lg-inline">User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li class="dropdown-header" sec:authorize="isAuthenticated()">

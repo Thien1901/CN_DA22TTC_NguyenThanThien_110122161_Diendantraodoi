@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -29,6 +30,16 @@ public class GlobalControllerAdvice {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated() 
                     && !"anonymousUser".equals(authentication.getPrincipal())) {
+                
+                // Kiểm tra nếu là OAuth2 user
+                if (authentication.getPrincipal() instanceof OAuth2User) {
+                    OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+                    String email = oAuth2User.getAttribute("email");
+                    Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoEmail(email);
+                    return nguoiDungOpt.orElse(null);
+                }
+                
+                // Form login user
                 Optional<NguoiDung> nguoiDungOpt = nguoiDungService.timTheoTenDangNhap(authentication.getName());
                 return nguoiDungOpt.orElse(null);
             }
